@@ -16,7 +16,12 @@ class AuthController {
      */
     public function login($email, $password) {
         // Mensajes de depuración
-        error_log("Intento de login: Email=$email, Password=$password");
+        error_log("Intento de login: Email=$email");
+        
+        // Verificar si ya hay una sesión activa y destruirla
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            session_destroy();
+        }
         
         // Primero verificar en superadmin
         $superadmin = $this->superAdminModel->findByEmail($email);
@@ -24,7 +29,6 @@ class AuthController {
         error_log("Superadmin encontrado: " . ($superadmin ? "SÍ" : "NO"));
         
         if ($superadmin) {
-            error_log("Password en BD: " . $superadmin->password);
             $passwordVerified = password_verify($password, $superadmin->password);
             error_log("Password verificada: " . ($passwordVerified ? "SÍ" : "NO"));
             
@@ -49,7 +53,6 @@ class AuthController {
         error_log("Usuario regular encontrado: " . ($usuario ? "SÍ" : "NO"));
         
         if ($usuario) {
-            error_log("Password en BD (usuario): " . $usuario->password);
             $passwordVerified = password_verify($password, $usuario->password);
             error_log("Password verificada (usuario): " . ($passwordVerified ? "SÍ" : "NO"));
             
@@ -90,7 +93,9 @@ class AuthController {
      * Cierra la sesión del usuario
      */
     public function logout() {
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         session_destroy();
         
         return [
@@ -104,7 +109,9 @@ class AuthController {
      * @return array Información de la sesión actual
      */
     public function checkSession() {
-        session_start();
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
         
         if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
             return [
