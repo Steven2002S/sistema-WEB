@@ -19,9 +19,10 @@ body {
     height: 500px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     background-color: white;
+    overflow: hidden; /* Para asegurar que nada se salga del contenedor */
 }
 
-/* Lado izquierdo - Carrusel */
+/* Lado izquierdo - Imagen */
 .carousel-side {
     width: 50%;
     position: relative;
@@ -29,39 +30,45 @@ body {
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end;
+    justify-content: space-between;
     align-items: center;
     color: white;
     padding-bottom: 30px;
+    padding-top: 0; /* Eliminar cualquier padding superior */
 }
 
 .carousel {
     width: 100%;
-    height: 70%;
+    height: auto; /* Altura automática basada en el contenido */
+    margin-bottom: 0; /* Eliminar margen inferior */
+    display: block; /* Cambiar a block en lugar de flex */
     position: relative;
     overflow: hidden;
-    margin-bottom: 20px;
 }
 
 .carousel-inner {
     width: 100%;
     height: 100%;
-    display: flex;
-    transition: transform 0.5s ease;
 }
 
 .slide {
     width: 100%;
-    flex-shrink: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    height: auto;
 }
 
 .slide img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
+    width: 100%;
+    height: auto;
+    display: block; /* Importante para eliminar espacio extra debajo de la imagen */
+    object-fit: cover; /* Asegura que la imagen cubra todo el espacio */
+    object-position: center; /* Centra la imagen */
+}
+
+.brand-container {
+    position: absolute; /* Posicionamiento absoluto */
+    bottom: 30px; /* Distancia desde el fondo */
+    width: 100%;
+    text-align: center;
 }
 
 .brand {
@@ -80,24 +87,9 @@ body {
     letter-spacing: 2px;
 }
 
+/* Ocultar los puntos de navegación */
 .carousel-dots {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-}
-
-.dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: rgba(255, 255, 255, 0.5);
-    margin: 0 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.dot.active {
-    background-color: white;
+    display: none;
 }
 
 /* Lado derecho - Formulario de inicio de sesión */

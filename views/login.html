@@ -4,33 +4,115 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WeMakers - Iniciar Sesión</title>
-    <link rel="stylesheet" href="/sistema-web/css/login.css">
+    <link rel="stylesheet" href="../css/login.css">
+    <style>
+        /* Estos estilos sobrescribirán los del archivo login.css */
+        .container {
+            display: flex;
+            width: 900px;
+            height: 500px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            background-color: white;
+            overflow: hidden; /* Para asegurar que nada se salga del contenedor */
+        }
+        
+        /* Lado izquierdo - Imagen */
+        .carousel-side {
+            width: 50%;
+            position: relative;
+            background-color: #0080C9;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Cambiado para distribuir el espacio */
+            align-items: center;
+            color: white;
+            padding-bottom: 30px;
+            padding-top: 0; /* Eliminar cualquier padding superior */
+        }
+        
+        .carousel {
+            width: 100%;
+            height: auto; /* Altura automática basada en el contenido */
+            margin-bottom: 0; /* Eliminar margen inferior */
+            display: block; /* Cambiar a block en lugar de flex */
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .carousel-inner {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .slide {
+            width: 100%;
+            height: auto;
+        }
+        
+        .slide img {
+            width: 100%;
+            height: auto;
+            display: block; /* Importante para eliminar espacio extra debajo de la imagen */
+            object-fit: cover; /* Asegura que la imagen cubra todo el espacio */
+            object-position: center; /* Centra la imagen */
+        }
+        
+        .brand-container {
+            position: absolute; /* Posicionamiento absoluto */
+            bottom: 30px; /* Distancia desde el fondo */
+            width: 100%;
+            text-align: center;
+        }
+        
+        .brand {
+            margin: 10px 0;
+            font-size: 22px;
+            font-weight: bold;
+        }
+        
+        .brand span {
+            color: #FFCC29;
+        }
+        
+        .tagline {
+            margin-bottom: 15px;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+        
+        /* Ocultar los puntos de navegación */
+        .carousel-dots {
+            display: none;
+        }
+
+        /* Asegurarse de que la parte de login también está bien alineada */
+        .login-side {
+            width: 50%;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
-        <!-- Lado izquierdo - Carrusel -->
+        <!-- Lado izquierdo - Imagen estática alineada arriba -->
         <div class="carousel-side">
             <div class="carousel">
-                <div class="carousel-inner" id="carouselInner">
-                    <!-- Aquí puedes agregar tus propias imágenes -->
+                <div class="carousel-inner">
                     <div class="slide">
-                        <!-- Imagen de ejemplo, reemplaza con tu imagen -->
-                        <img src="tu-imagen-1.jpg" alt="Imagen 1">
-                    </div>
-                    <div class="slide">
-                        <img src="tu-imagen-2.jpg" alt="Imagen 2">
-                    </div>
-                    <div class="slide">
-                        <img src="tu-imagen-3.jpg" alt="Imagen 3">
+                        <img src="../img/imagen1.webp" alt="Imagen 1">
                     </div>
                 </div>
             </div>
-            <div class="brand">We<span>Makers</span></div>
-            <div class="tagline">IA · ROBOTS · STEM</div>
-            <div class="carousel-dots" id="carouselDots">
-                <span class="dot active"></span>
-                <span class="dot"></span>
-                <span class="dot"></span>
+            
+            <!-- Contenedor para la marca y el tagline -->
+            <div class="brand-container">
+                <div class="brand">We<span>Makers</span></div>
+                <div class="tagline">IA · ROBOTS · STEM</div>
             </div>
         </div>
         
@@ -42,7 +124,7 @@
                 
                 <p class="login-subtitle">Ingresa tus credenciales para acceder al sistema</p>
                 
-                <form class="login-form" action="index.php?controller=auth&action=login" method="POST" id="loginForm">
+                <form class="login-form" action="../index.php?controller=auth&action=login" method="POST" id="loginForm">
                     <div class="input-group">
                         <div class="input-icon">
                             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="#aaa">
@@ -87,7 +169,7 @@
         const password = this.password.value;
         
         // Enviar mediante fetch API
-        fetch('index.php?controller=auth&action=login', {
+        fetch('../index.php?controller=auth&action=login', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
@@ -110,38 +192,6 @@
             console.error('Error:', error);
         });
     });
-
-    // Script para el carrusel
-    let currentSlide = 0;
-    const slides = document.querySelectorAll('.slide');
-    const dots = document.querySelectorAll('.dot');
-    const carouselInner = document.getElementById('carouselInner');
-
-    // Configurar el ancho del carrusel basado en el número de slides
-    carouselInner.style.width = `${slides.length * 100}%`;
-
-    // Función para cambiar de slide
-    function showSlide(n) {
-        currentSlide = n;
-        carouselInner.style.transform = `translateX(-${currentSlide * (100 / slides.length)}%)`;
-        
-        // Actualizar los dots
-        dots.forEach(dot => dot.classList.remove('active'));
-        dots[currentSlide].classList.add('active');
-    }
-
-    // Configurar evento de clic para los dots
-    dots.forEach((dot, index) => {
-        dot.addEventListener('click', () => {
-            showSlide(index);
-        });
-    });
-
-    // Carrusel automático
-    setInterval(() => {
-        currentSlide = (currentSlide + 1) % slides.length;
-        showSlide(currentSlide);
-    }, 5000);
     </script>
 </body>
 </html>

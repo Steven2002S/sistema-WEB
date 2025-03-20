@@ -1,130 +1,191 @@
 <?php
 class AuthController {
+    private $db;
     private $superAdminModel;
     private $usuarioModel;
     
+    /**
+     * Constructor del controlador de autenticación
+     * @param Database $database Instancia de la clase Database
+     */
     public function __construct($database) {
+        $this->db = $database;
         $this->superAdminModel = new SuperAdminModel($database);
         $this->usuarioModel = new UsuarioModel($database);
     }
     
     /**
-     * Procesa el login verificando en ambas tablas
-     * @param string $email Email del usuario
-     * @param string $password Contraseña sin encriptar
-     * @return array Resultado del login con status y mensaje
+     * Acción de login
      */
-    public function login($email, $password) {
-        // Mensajes de depuración
-        error_log("Intento de login: Email=$email");
-        
-        // Verificar si ya hay una sesión activa y destruirla
-        if (session_status() === PHP_SESSION_ACTIVE) {
-            session_destroy();
-        }
-        
-        // Primero verificar en superadmin
-        $superadmin = $this->superAdminModel->findByEmail($email);
-        
-        error_log("Superadmin encontrado: " . ($superadmin ? "SÍ" : "NO"));
-        
-        if ($superadmin) {
-            $passwordVerified = password_verify($password, $superadmin->password);
-            error_log("Password verificada: " . ($passwordVerified ? "SÍ" : "NO"));
+    public function login() {
+        // Verificar si es una petición POST
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Depuración - Guardar en un archivo de log
+            error_log("Login intento - Datos recibidos: " . print_r($_POST, true));
             
-            if ($passwordVerified) {
-                // Iniciar sesión como superadmin
-                session_start();
-                $_SESSION['user_id'] = $superadmin->id;
-                $_SESSION['user_type'] = 'superadmin';
-                $_SESSION['nombre'] = $superadmin->nombre;
-                
-                return [
-                    'success' => true,
-                    'user_type' => 'superadmin',
-                    'redirect' => '/dashboard/superadmin'
-                ];
+            // Obtener y validar datos de entrada
+            $email = filter_input(INPUT_POST, 'email', FILTER_VALIDATE_EMAIL);
+            $password = isset($_POST['password']) ? $_POST['password'] : '';
+            
+            // Depuración
+            error_log("Email filtrado: " . ($email ? $email : "no válido"));
+            error_log("Password recibido: " . (empty($password) ? "vacío" : "no vacío"));
+            
+            // Verificar datos obligatorios
+            if (!$email || empty($password)) {
+                error_log("Login fallido - Datos incompletos");
+                $this->responderJSON(false, 'Por favor, introduce un email válido y contraseña');
+                return;
             }
-        }
-        
-        // Si no es superadmin, verificar en usuarios
-        $usuario = $this->usuarioModel->findByEmail($email);
-        
-        error_log("Usuario regular encontrado: " . ($usuario ? "SÍ" : "NO"));
-        
-        if ($usuario) {
-            $passwordVerified = password_verify($password, $usuario->password);
-            error_log("Password verificada (usuario): " . ($passwordVerified ? "SÍ" : "NO"));
             
-            if ($passwordVerified) {
-                // Verificar si está activo
-                if ($usuario->estado != 'activo') {
-                    error_log("Usuario está inactivo");
-                    return [
-                        'success' => false,
-                        'message' => 'Usuario inactivo. Contacte al administrador.'
-                    ];
+            // Intentar autenticar como superadmin
+            error_log("Intentando autenticar como superadmin a: $email");
+            $superadmin = $this->superAdminModel->autenticar($email, $password);
+            
+            if ($superadmin) {
+                error_log("Autenticación exitosa como superadmin para: $email");
+                
+                // Iniciar sesión
+                if (session_status() == PHP_SESSION_NONE) {
+                    session_start();
                 }
                 
-                // Iniciar sesión como usuario regular
-                session_start();
-                $_SESSION['user_id'] = $usuario->id;
-                $_SESSION['user_type'] = 'usuario';
-                $_SESSION['nombre'] = $usuario->nombres . ' ' . $usuario->apellidos;
-                $_SESSION['rol_id'] = $usuario->rol_id;
+                // Almacenar datos de superadmin en la sesión
+                $_SESSION['usuario_id'] = $superadmin['id'];
+                $_SESSION['usuario_nombre'] = $superadmin['nombre'];
+                $_SESSION['usuario_email'] = $superadmin['email'];
+                $_SESSION['usuario_tipo'] = 'superadmin';
                 
-                return [
-                    'success' => true,
-                    'user_type' => 'usuario',
-                    'redirect' => '/dashboard/usuario'
-                ];
+                // Generar un token de sesión para mayor seguridad
+                $_SESSION['token'] = bin2hex(random_bytes(32));
+                
+                // Redirigir al dashboard de superadmin (URL absoluta desde la raíz)
+                $this->responderJSON(true, 'Inicio de sesión exitoso', '/SISTEMA-WEB/index.php?controller=superadmin&action=dashboard');
+                return;
             }
+            
+            // Si no es superadmin, intentar autenticar como usuario normal
+            error_log("Intentando autenticar como usuario a: $email");
+            $usuario = $this->usuarioModel->autenticar($email, $password);
+            
+            if ($usuario) {
+                error_log("Autenticación exitosa como usuario para: $email");
+                
+                // Iniciar sesión
+                if (session_status() == PHP_SESSION_NONE) {
+                    session_start();
+                }
+                
+                // Almacenar datos de usuario en la sesión
+                $_SESSION['usuario_id'] = $usuario['id'];
+                $_SESSION['usuario_nombre'] = $usuario['nombres'] . ' ' . $usuario['apellidos'];
+                $_SESSION['usuario_email'] = $usuario['correo'];
+                $_SESSION['usuario_tipo'] = 'usuario';
+                $_SESSION['usuario_rol'] = $usuario['rol'];
+                
+                // Generar un token de sesión para mayor seguridad
+                $_SESSION['token'] = bin2hex(random_bytes(32));
+                
+                // Redirigir al dashboard de usuario (URL absoluta desde la raíz)
+                $this->responderJSON(true, 'Inicio de sesión exitoso', '/SISTEMA-WEB/index.php?controller=usuario&action=dashboard');
+                return;
+            }
+            
+            // Si no se autenticó ni como superadmin ni como usuario
+            error_log("Autenticación fallida para: $email");
+            $this->responderJSON(false, 'Email o contraseña incorrectos');
+        } else {
+            // Si no es POST, redirigir a la página de login
+            // CORREGIDO: Usa la ruta correcta al login.html
+            header('Location: views/login.html');
+            exit;
         }
-        
-        // Si no se encontró en ninguna tabla
-        error_log("Autenticación fallida: credenciales incorrectas");
-        return [
-            'success' => false,
-            'message' => 'Credenciales incorrectas'
-        ];
     }
     
     /**
-     * Cierra la sesión del usuario
+     * Acción de logout
      */
     public function logout() {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
+        // Iniciar sesión si no está activa
+        if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
+        
+        // Eliminar todas las variables de sesión
+        $_SESSION = [];
+        
+        // Destruir la sesión
         session_destroy();
         
-        return [
-            'success' => true,
-            'redirect' => '/login'
-        ];
+        // Redirigir a la página de login
+        header('Location: views/login.html');
+        exit;
     }
     
     /**
-     * Verifica si hay una sesión activa y qué tipo de usuario está conectado
-     * @return array Información de la sesión actual
+     * Verificar si el usuario está autenticado
+     * @return bool True si está autenticado, false en caso contrario
      */
-    public function checkSession() {
-        if (session_status() !== PHP_SESSION_ACTIVE) {
+    public function estaAutenticado() {
+        // Iniciar sesión si no está activa
+        if (session_status() == PHP_SESSION_NONE) {
             session_start();
         }
         
-        if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
-            return [
-                'logged_in' => true,
-                'user_type' => $_SESSION['user_type'],
-                'user_id' => $_SESSION['user_id'],
-                'nombre' => $_SESSION['nombre']
-            ];
+        return isset($_SESSION['usuario_id']) && isset($_SESSION['token']);
+    }
+    
+    /**
+     * Verificar si el usuario autenticado es superadmin
+     * @return bool True si es superadmin, false en caso contrario
+     */
+    public function esSuperAdmin() {
+        if (!$this->estaAutenticado()) {
+            return false;
         }
         
-        return [
-            'logged_in' => false
-        ];
+        return $_SESSION['usuario_tipo'] === 'superadmin';
+    }
+    
+    /**
+     * Obtener el ID del usuario autenticado
+     * @return int|null ID del usuario o null si no está autenticado
+     */
+    public function getUsuarioId() {
+        if (!$this->estaAutenticado()) {
+            return null;
+        }
+        
+        return $_SESSION['usuario_id'];
+    }
+    
+    /**
+     * Verificar si el usuario tiene un rol específico
+     * @param string $rol Nombre del rol a verificar
+     * @return bool True si tiene el rol, false en caso contrario
+     */
+    public function tieneRol($rol) {
+        if (!$this->estaAutenticado() || $_SESSION['usuario_tipo'] !== 'usuario') {
+            return false;
+        }
+        
+        return $_SESSION['usuario_rol'] === $rol;
+    }
+    
+    /**
+     * Responder con JSON para las peticiones AJAX
+     * @param bool $success Indica si la operación fue exitosa
+     * @param string $message Mensaje para el usuario
+     * @param string $redirect URL de redirección (opcional)
+     */
+    private function responderJSON($success, $message, $redirect = '') {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'success' => $success,
+            'message' => $message,
+            'redirect' => $redirect
+        ]);
+        exit;
     }
 }
 ?>
