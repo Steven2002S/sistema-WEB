@@ -95,41 +95,57 @@ class SuperAdminModel {
     }
     
     /**
-     * Dashboard stats para el superadmin
-     * @return array Estadísticas del dashboard
-     */
-    public function obtenerEstadisticas() {
-        $stats = [];
-        
-        // Total de usuarios
-        $query = "SELECT COUNT(*) as total FROM usuarios";
-        $result = $this->db->getConnection()->query($query);
-        $stats['total_usuarios'] = $result->fetch_assoc()['total'];
-        
-        // Usuarios activos
-        $query = "SELECT COUNT(*) as activos FROM usuarios WHERE estado = 'activo'";
-        $result = $this->db->getConnection()->query($query);
-        $stats['usuarios_activos'] = $result->fetch_assoc()['activos'];
-        
-        // Usuarios por rol
-        $query = "SELECT r.nombre, COUNT(u.id) as cantidad 
-                  FROM usuarios u
-                  JOIN roles r ON u.rol_id = r.id
-                  GROUP BY r.nombre";
-        $result = $this->db->getConnection()->query($query);
-        $stats['usuarios_por_rol'] = [];
-        
-        while ($row = $result->fetch_assoc()) {
-            $stats['usuarios_por_rol'][$row['nombre']] = $row['cantidad'];
-        }
-        
-        // Usuarios recientes (último mes)
-        $query = "SELECT COUNT(*) as recientes FROM usuarios 
-                  WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
-        $result = $this->db->getConnection()->query($query);
-        $stats['usuarios_recientes'] = $result->fetch_assoc()['recientes'];
-        
-        return $stats;
+ * Dashboard stats para el superadmin
+ * @return array Estadísticas del dashboard
+ */
+public function obtenerEstadisticas() {
+    $stats = [];
+    
+    // Total de usuarios
+    $query = "SELECT COUNT(*) as total FROM usuarios";
+    $result = $this->db->getConnection()->query($query);
+    $stats['total_usuarios'] = $result->fetch_assoc()['total'];
+    
+    // Usuarios activos
+    $query = "SELECT COUNT(*) as activos FROM usuarios WHERE estado = 'activo'";
+    $result = $this->db->getConnection()->query($query);
+    $stats['usuarios_activos'] = $result->fetch_assoc()['activos'];
+    
+    // Usuarios por rol
+    $query = "SELECT r.nombre, COUNT(u.id) as cantidad 
+              FROM usuarios u
+              JOIN roles r ON u.rol_id = r.id
+              GROUP BY r.nombre";
+    $result = $this->db->getConnection()->query($query);
+    $stats['usuarios_por_rol'] = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $stats['usuarios_por_rol'][$row['nombre']] = $row['cantidad'];
     }
+    
+    // Usuarios recientes (último mes)
+    $query = "SELECT COUNT(*) as recientes FROM usuarios 
+              WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+    $result = $this->db->getConnection()->query($query);
+    $stats['usuarios_recientes'] = $result->fetch_assoc()['recientes'];
+    
+    // Total de cursos
+    $query = "SELECT COUNT(*) as total FROM cursos";
+    $result = $this->db->getConnection()->query($query);
+    $stats['total_cursos'] = $result->fetch_assoc()['total'];
+    
+    // Cursos activos
+    $query = "SELECT COUNT(*) as activos FROM cursos WHERE estado = 'activo'";
+    $result = $this->db->getConnection()->query($query);
+    $stats['cursos_activos'] = $result->fetch_assoc()['activos'];
+    
+    // Cursos recientes (último mes)
+    $query = "SELECT COUNT(*) as recientes FROM cursos 
+              WHERE created_at >= DATE_SUB(NOW(), INTERVAL 1 MONTH)";
+    $result = $this->db->getConnection()->query($query);
+    $stats['cursos_recientes'] = $result->fetch_assoc()['recientes'];
+    
+    return $stats;
+}
 }
 ?>

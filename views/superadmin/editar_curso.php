@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Nuevo Rol - Administrador</title>
+    <title>Editar Curso - Administrador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        /* Usar los mismos estilos que en crear_curso.php */
         :root {
             --primary-color: #0077c2;
             --secondary-color: #0099ff;
@@ -34,7 +35,7 @@
             display: flex;
         }
         
-        /* Sidebar */
+        /* Sidebar estilos (mismo que en dashboard.php) */
         .sidebar {
             width: 220px;
             background-color: var(--primary-color);
@@ -155,16 +156,40 @@
             margin-bottom: 30px;
         }
         
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .form-group {
             margin-bottom: 20px;
         }
         
-        .section-title {
-            font-size: 18px;
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
             font-weight: bold;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            font-size: 16px;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 119, 194, 0.2);
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .form-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 30px;
         }
         
         .btn {
@@ -174,13 +199,6 @@
             cursor: pointer;
             border: none;
             transition: background-color 0.3s;
-            display: inline-flex;
-            align-items: center;
-            text-decoration: none;
-        }
-        
-        .btn i {
-            margin-right: 8px;
         }
         
         .btn-primary {
@@ -201,78 +219,22 @@
             background-color: #e0e0e0;
         }
         
-        /* Form styles */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .form-control {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-        
-        .form-control:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-        
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        .required-indicator {
-            color: var(--danger-color);
-            margin-left: 4px;
-        }
-        
-        .help-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-        }
-        
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 30px;
-        }
-        
-        /* Alert messages */
         .alert {
             padding: 15px;
-            margin-bottom: 20px;
             border-radius: 4px;
-            display: flex;
-            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .alert-danger {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: var(--danger-color);
+            border: 1px solid rgba(244, 67, 54, 0.3);
         }
         
         .alert-success {
             background-color: rgba(76, 175, 80, 0.1);
             color: var(--success-color);
-            border: 1px solid var(--success-color);
-        }
-        
-        .alert-error {
-            background-color: rgba(244, 67, 54, 0.1);
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-        }
-        
-        .alert i {
-            margin-right: 10px;
-            font-size: 18px;
+            border: 1px solid rgba(76, 175, 80, 0.3);
         }
     </style>
 </head>
@@ -296,15 +258,15 @@
                 <i class="fas fa-users"></i>
                 <span>Gestión de Usuarios</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">
-              <i class="fas fa-book"></i>
-              <span>Gestión de Cursos</span>
+            <li class="menu-item active" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">
+                <i class="fas fa-book"></i>
+                <span>Gestión de Cursos</span>
             </li>
-            <li class="menu-item active" onclick="location.href='index.php?controller=superadmin&action=gestionarRoles'">
+            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=gestionarRoles'">
                 <i class="fas fa-user-tag"></i>
                 <span>Roles</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=perfil'">
+            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=verPerfil'">
                 <i class="fas fa-cog"></i>
                 <span>Configuraciones</span>
             </li>
@@ -322,68 +284,43 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h1 class="page-title">Crear Nuevo Rol</h1>
+            <h1 class="page-title">Editar Curso</h1>
             <div class="user-badge">SA</div>
         </div>
 
-        <?php if (!empty($mensaje) && $error): ?>
-        <div class="alert alert-error">
-            <i class="fas fa-exclamation-circle"></i>
-            <span><?php echo $mensaje; ?></span>
-        </div>
-        <?php endif; ?>
-
-        <?php if (!empty($mensaje) && !$error): ?>
-        <div class="alert alert-success">
-            <i class="fas fa-check-circle"></i>
-            <span><?php echo $mensaje; ?></span>
-        </div>
-        <?php endif; ?>
-
         <!-- Form Section -->
         <div class="form-section">
-            <div class="section-header">
-                <h2 class="section-title">Información del Rol</h2>
-            </div>
-            
-            <form method="POST" action="index.php?controller=superadmin&action=crear_rol">              
-                  <div class="form-group">
-                    <label for="nombre" class="form-label">Nombre del Rol<span class="required-indicator">*</span></label>
-                    <input type="text" id="nombre" name="nombre" class="form-control" required>
-                    <div class="help-text">Asigna un nombre descriptivo para el rol (Ej: Administrador, Editor, Visualizador)</div>
+            <?php if (!empty($mensaje)): ?>
+                <div class="alert <?php echo $error ? 'alert-danger' : 'alert-success'; ?>">
+                    <?php echo htmlspecialchars($mensaje); ?>
+                </div>
+            <?php endif; ?>
+
+            <form method="POST" action="index.php?controller=superadmin&action=editarCurso&id=<?php echo $curso['id']; ?>">
+                <div class="form-group">
+                    <label for="nombre" class="form-label">Nombre del Curso *</label>
+                    <input type="text" class="form-control" id="nombre" name="nombre" value="<?php echo htmlspecialchars($curso['nombre']); ?>" required>
                 </div>
                 
                 <div class="form-group">
                     <label for="descripcion" class="form-label">Descripción</label>
-                    <textarea id="descripcion" name="descripcion" class="form-control"></textarea>
-                    <div class="help-text">Describe brevemente las funciones y permisos asociados a este rol</div>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="4"><?php echo htmlspecialchars($curso['descripcion']); ?></textarea>
                 </div>
                 
-                <div class="form-actions">
-                    <a href="index.php?controller=superadmin&action=gestionarRoles" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Guardar Rol
-                    </button>
+                <div class="form-group">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select class="form-control" id="estado" name="estado">
+                        <option value="activo" <?php echo $curso['estado'] == 'activo' ? 'selected' : ''; ?>>Activo</option>
+                        <option value="inactivo" <?php echo $curso['estado'] == 'inactivo' ? 'selected' : ''; ?>>Inactivo</option>
+                    </select>
+                </div>
+                
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-secondary" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Actualizar Curso</button>
                 </div>
             </form>
         </div>
     </div>
-
-    <script>
-        // Validación del formulario
-        document.querySelector('form').addEventListener('submit', function(event) {
-            const nombre = document.getElementById('nombre').value.trim();
-            
-            if (!nombre) {
-                event.preventDefault();
-                alert('Por favor, proporciona un nombre para el rol.');
-                return false;
-            }
-            
-            return true;
-        });
-    </script>
 </body>
 </html>

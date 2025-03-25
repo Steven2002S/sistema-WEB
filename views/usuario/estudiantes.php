@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Nuevo Rol - Administrador</title>
+    <title>Gestión de Estudiantes - Usuario</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -146,8 +146,8 @@
             font-weight: bold;
         }
         
-        /* Form Section */
-        .form-section {
+        /* Students Section */
+        .estudiantes-section {
             background-color: var(--card-color);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -167,86 +167,35 @@
             font-weight: bold;
         }
         
-        .btn {
-            padding: 10px 20px;
+        .search-box {
+            padding: 10px;
             border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            border: none;
-            transition: background-color 0.3s;
-            display: inline-flex;
-            align-items: center;
-            text-decoration: none;
+            border: 1px solid var(--border-color);
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 14px;
         }
         
-        .btn i {
-            margin-right: 8px;
+        table {
+            width: 100%;
+            border-collapse: collapse;
         }
         
-        .btn-primary {
-            background-color: var(--primary-color);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            background-color: var(--secondary-color);
-        }
-        
-        .btn-secondary {
+        th {
+            text-align: left;
+            padding: 12px;
             background-color: var(--background-color);
             color: var(--text-color);
+            font-weight: 600;
         }
         
-        .btn-secondary:hover {
-            background-color: #e0e0e0;
-        }
-        
-        /* Form styles */
-        .form-group {
-            margin-bottom: 20px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-        
-        .form-control {
-            width: 100%;
+        td {
             padding: 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            font-size: 16px;
-            transition: border-color 0.3s;
+            border-bottom: 1px solid var(--border-color);
         }
         
-        .form-control:focus {
-            border-color: var(--primary-color);
-            outline: none;
-        }
-        
-        textarea.form-control {
-            min-height: 120px;
-            resize: vertical;
-        }
-        
-        .required-indicator {
-            color: var(--danger-color);
-            margin-left: 4px;
-        }
-        
-        .help-text {
-            font-size: 12px;
-            color: #666;
-            margin-top: 4px;
-        }
-        
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 30px;
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
         }
         
         /* Alert messages */
@@ -264,12 +213,6 @@
             border: 1px solid var(--success-color);
         }
         
-        .alert-error {
-            background-color: rgba(244, 67, 54, 0.1);
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
-        }
-        
         .alert i {
             margin-right: 10px;
             font-size: 18px;
@@ -281,36 +224,43 @@
     <div class="sidebar">
         <div class="logo">GestUsers</div>
         <div class="admin-info">
-            <div class="admin-avatar">SA</div>
+            <div class="admin-avatar">
+                <?php 
+                    // Mostrar iniciales del usuario
+                    $iniciales = "";
+                    if (!empty($_SESSION['usuario_nombre'])) {
+                        $nombres = explode(' ', $_SESSION['usuario_nombre']);
+                        foreach ($nombres as $nombre) {
+                            if (!empty($nombre)) {
+                                $iniciales .= substr($nombre, 0, 1);
+                                if (strlen($iniciales) >= 2) break;
+                            }
+                        }
+                    }
+                    echo htmlspecialchars($iniciales);
+                ?>
+            </div>
             <div class="admin-details">
-                <div class="admin-name">SuperAdmin</div>
-                <div class="admin-role">Administrador</div>
+                <div class="admin-name"><?php echo htmlspecialchars($_SESSION['usuario_nombre'] ?? 'Usuario'); ?></div>
+                <div class="admin-role"><?php echo htmlspecialchars($_SESSION['usuario_rol'] ?? 'Usuario'); ?></div>
             </div>
         </div>
         <ul class="menu">
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=dashboard'">
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=dashboard'">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=listarUsuarios'">
-                <i class="fas fa-users"></i>
-                <span>Gestión de Usuarios</span>
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=listarTitulares'">
+                <i class="fas fa-user-tie"></i>
+                <span>Titulares</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">
-              <i class="fas fa-book"></i>
-              <span>Gestión de Cursos</span>
+            <li class="menu-item active" onclick="location.href='index.php?controller=usuario&action=listarEstudiantes'">
+                <i class="fas fa-user-graduate"></i>
+                <span>Estudiantes</span>
             </li>
-            <li class="menu-item active" onclick="location.href='index.php?controller=superadmin&action=gestionarRoles'">
-                <i class="fas fa-user-tag"></i>
-                <span>Roles</span>
-            </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=perfil'">
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=perfil'">
                 <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
-            </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
-                <i class="fas fa-chart-bar"></i>
-                <span>Estadísticas</span>
+                <span>Mi Perfil</span>
             </li>
         </ul>
         <div class="logout" onclick="location.href='index.php?controller=auth&action=logout'">
@@ -322,67 +272,76 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h1 class="page-title">Crear Nuevo Rol</h1>
-            <div class="user-badge">SA</div>
+            <h1 class="page-title">Listado de Estudiantes</h1>
+            <div class="user-badge">
+                <?php echo htmlspecialchars($iniciales); ?>
+            </div>
         </div>
 
-        <?php if (!empty($mensaje) && $error): ?>
-        <div class="alert alert-error">
-            <i class="fas fa-exclamation-circle"></i>
-            <span><?php echo $mensaje; ?></span>
-        </div>
-        <?php endif; ?>
-
-        <?php if (!empty($mensaje) && !$error): ?>
+        <?php if (isset($_GET['success'])): ?>
         <div class="alert alert-success">
             <i class="fas fa-check-circle"></i>
-            <span><?php echo $mensaje; ?></span>
+            <span>Operación realizada con éxito.</span>
         </div>
         <?php endif; ?>
 
-        <!-- Form Section -->
-        <div class="form-section">
+        <!-- Estudiantes Section -->
+        <div class="estudiantes-section">
             <div class="section-header">
-                <h2 class="section-title">Información del Rol</h2>
+                <h2 class="section-title">Estudiantes Registrados</h2>
             </div>
             
-            <form method="POST" action="index.php?controller=superadmin&action=crear_rol">              
-                  <div class="form-group">
-                    <label for="nombre" class="form-label">Nombre del Rol<span class="required-indicator">*</span></label>
-                    <input type="text" id="nombre" name="nombre" class="form-control" required>
-                    <div class="help-text">Asigna un nombre descriptivo para el rol (Ej: Administrador, Editor, Visualizador)</div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="descripcion" class="form-label">Descripción</label>
-                    <textarea id="descripcion" name="descripcion" class="form-control"></textarea>
-                    <div class="help-text">Describe brevemente las funciones y permisos asociados a este rol</div>
-                </div>
-                
-                <div class="form-actions">
-                    <a href="index.php?controller=superadmin&action=gestionarRoles" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Guardar Rol
-                    </button>
-                </div>
-            </form>
+            <input type="text" class="search-box" id="searchEstudiantes" placeholder="Buscar estudiante por cédula, nombre, apellido, curso o titular...">
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fecha Registro</th>
+                        <th>Cédula</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Edad</th>
+                        <th>Curso</th>
+                        <th>Cédula Titular</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (!empty($estudiantes)): ?>
+                        <?php foreach($estudiantes as $estudiante): ?>
+                        <tr>
+                            <td><?php echo date('d/m/Y', strtotime($estudiante['titular_fecha_registro'])); ?></td>
+                            <td><?php echo empty($estudiante['cedula']) ? 'No disponible' : htmlspecialchars($estudiante['cedula']); ?></td>
+                            <td><?php echo htmlspecialchars($estudiante['nombres']); ?></td>
+                            <td><?php echo htmlspecialchars($estudiante['apellidos']); ?></td>
+                            <td><?php echo htmlspecialchars($estudiante['edad']); ?></td>
+                            <td><?php echo htmlspecialchars($estudiante['curso_nombre']); ?></td>
+                            <td><?php echo htmlspecialchars($estudiante['titular_cedula']); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <tr>
+                            <td colspan="7" style="text-align: center;">No hay estudiantes registrados</td>
+                        </tr>
+                    <?php endif; ?>
+                </tbody>
+            </table>
         </div>
     </div>
 
     <script>
-        // Validación del formulario
-        document.querySelector('form').addEventListener('submit', function(event) {
-            const nombre = document.getElementById('nombre').value.trim();
+        // Búsqueda en la tabla
+        document.getElementById('searchEstudiantes').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('tbody tr');
             
-            if (!nombre) {
-                event.preventDefault();
-                alert('Por favor, proporciona un nombre para el rol.');
-                return false;
-            }
-            
-            return true;
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
         });
     </script>
 </body>

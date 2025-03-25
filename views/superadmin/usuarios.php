@@ -410,9 +410,13 @@
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </li>
-            <li class="menu-item active">
+            <li class="menu-item active" onclick="location.href='index.php?controller=superadmin&action=listarUsuarios'">
                 <i class="fas fa-users"></i>
                 <span>Gestión de Usuarios</span>
+            </li>
+            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">
+              <i class="fas fa-book"></i>
+              <span>Gestión de Cursos</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=gestionarRoles'">
                 <i class="fas fa-user-tag"></i>

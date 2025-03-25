@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Roles - Administrador</title>
+    <title>Gestión de Titulares - Usuario</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -146,8 +146,8 @@
             font-weight: bold;
         }
         
-        /* Roles Section */
-        .roles-section {
+        /* Users Section */
+        .titulares-section {
             background-color: var(--card-color);
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
@@ -174,13 +174,8 @@
             cursor: pointer;
             border: none;
             transition: background-color 0.3s;
-            display: inline-flex;
-            align-items: center;
             text-decoration: none;
-        }
-        
-        .btn i {
-            margin-right: 8px;
+            display: inline-block;
         }
         
         .btn-primary {
@@ -198,6 +193,7 @@
             border: 1px solid var(--border-color);
             width: 100%;
             margin-bottom: 20px;
+            font-size: 14px;
         }
         
         table {
@@ -210,6 +206,7 @@
             padding: 12px;
             background-color: var(--background-color);
             color: var(--text-color);
+            font-weight: 600;
         }
         
         td {
@@ -217,14 +214,8 @@
             border-bottom: 1px solid var(--border-color);
         }
         
-        .role-badge {
-            display: inline-block;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-            background-color: rgba(0, 119, 194, 0.1);
-            color: var(--primary-color);
+        tr:hover {
+            background-color: rgba(0, 0, 0, 0.02);
         }
         
         .actions {
@@ -243,6 +234,11 @@
             transition: background-color 0.3s;
         }
         
+        .btn-view {
+            background-color: rgba(0, 119, 194, 0.1);
+            color: var(--primary-color);
+        }
+        
         .btn-edit {
             background-color: rgba(255, 214, 0, 0.1);
             color: var(--accent-color);
@@ -253,12 +249,45 @@
             color: var(--danger-color);
         }
         
+        .btn-view:hover {
+            background-color: rgba(0, 119, 194, 0.2);
+        }
+        
         .btn-edit:hover {
             background-color: rgba(255, 214, 0, 0.2);
         }
         
         .btn-delete:hover {
             background-color: rgba(244, 67, 54, 0.2);
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        
+        .pagination-item {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background-color: var(--background-color);
+        }
+        
+        .pagination-item.active {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .pagination-item:hover:not(.active) {
+            background-color: var(--border-color);
         }
         
         /* Alert messages */
@@ -274,12 +303,6 @@
             background-color: rgba(76, 175, 80, 0.1);
             color: var(--success-color);
             border: 1px solid var(--success-color);
-        }
-        
-        .alert-error {
-            background-color: rgba(244, 67, 54, 0.1);
-            color: var(--danger-color);
-            border: 1px solid var(--danger-color);
         }
         
         .alert i {
@@ -339,24 +362,6 @@
             background-color: var(--danger-color);
             color: white;
         }
-        
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 40px;
-            color: #666;
-        }
-        
-        .empty-state i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: #ccc;
-        }
-        
-        .empty-state p {
-            font-size: 16px;
-            margin-bottom: 20px;
-        }
     </style>
 </head>
 <body>
@@ -364,36 +369,43 @@
     <div class="sidebar">
         <div class="logo">GestUsers</div>
         <div class="admin-info">
-            <div class="admin-avatar">SA</div>
+            <div class="admin-avatar">
+                <?php 
+                    // Mostrar iniciales del usuario
+                    $iniciales = "";
+                    if (!empty($_SESSION['usuario_nombre'])) {
+                        $nombres = explode(' ', $_SESSION['usuario_nombre']);
+                        foreach ($nombres as $nombre) {
+                            if (!empty($nombre)) {
+                                $iniciales .= substr($nombre, 0, 1);
+                                if (strlen($iniciales) >= 2) break;
+                            }
+                        }
+                    }
+                    echo htmlspecialchars($iniciales);
+                ?>
+            </div>
             <div class="admin-details">
-                <div class="admin-name">SuperAdmin</div>
-                <div class="admin-role">Administrador</div>
+                <div class="admin-name"><?php echo htmlspecialchars($_SESSION['usuario_nombre'] ?? 'Usuario'); ?></div>
+                <div class="admin-role"><?php echo htmlspecialchars($_SESSION['usuario_rol'] ?? 'Usuario'); ?></div>
             </div>
         </div>
         <ul class="menu">
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=dashboard'">
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=dashboard'">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=listarUsuarios'">
-                <i class="fas fa-users"></i>
-                <span>Gestión de Usuarios</span>
+            <li class="menu-item active" onclick="location.href='index.php?controller=usuario&action=listarTitulares'">
+                <i class="fas fa-user-tie"></i>
+                <span>Titulares</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">
-              <i class="fas fa-book"></i>
-              <span>Gestión de Cursos</span>
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=listarEstudiantes'">
+                <i class="fas fa-user-graduate"></i>
+                <span>Estudiantes</span>
             </li>
-            <li class="menu-item active" onclick="location.href='index.php?controller=superadmin&action=gestionarRoles'">
-                <i class="fas fa-user-tag"></i>
-                <span>Roles</span>
-            </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=perfil'">
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=perfil'">
                 <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
-            </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
-                <i class="fas fa-chart-bar"></i>
-                <span>Estadísticas</span>
+                <span>Mi Perfil</span>
             </li>
         </ul>
         <div class="logout" onclick="location.href='index.php?controller=auth&action=logout'">
@@ -405,49 +417,60 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h1 class="page-title">Gestión de Roles</h1>
-            <div class="user-badge">SA</div>
+            <h1 class="page-title">Gestión de Titulares</h1>
+            <div class="user-badge">
+                <?php echo htmlspecialchars($iniciales); ?>
+            </div>
         </div>
 
         <?php if (isset($_GET['success'])): ?>
         <div class="alert alert-success">
             <i class="fas fa-check-circle"></i>
-            <span>La operación se ha completado con éxito.</span>
+            <span>Operación realizada con éxito.</span>
         </div>
         <?php endif; ?>
 
-        <!-- Roles Section -->
-        <div class="roles-section">
+        <!-- Titulares Section -->
+        <div class="titulares-section">
             <div class="section-header">
-                <h2 class="section-title">Roles del Sistema</h2>
-                <a href="index.php?controller=superadmin&action=crear_rol" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Nuevo Rol
+                <h2 class="section-title">Listado de Titulares</h2>
+                <a href="index.php?controller=usuario&action=crearTitular" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Titular
                 </a>
             </div>
             
-            <input type="text" class="search-box" id="searchRoles" placeholder="Buscar por nombre...">
+            <input type="text" class="search-box" id="searchTitulares" placeholder="Buscar titular por cédula, nombre, apellido o correo...">
             
             <table>
                 <thead>
                     <tr>
-                        <th>Nombre</th>
-                        <th>Descripción</th>
+                        <th>Cédula</th>
+                        <th>Nombres</th>
+                        <th>Apellidos</th>
+                        <th>Correo</th>
+                        <th>Celular</th>
+                        <th>Fecha de Registro</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php if (!empty($roles)): ?>
-                        <?php foreach ($roles as $rol): ?>
+                    <?php if (!empty($titulares)): ?>
+                        <?php foreach($titulares as $titular): ?>
                         <tr>
-                            <td>
-                                <span class="role-badge"><?php echo htmlspecialchars($rol['nombre']); ?></span>
-                            </td>
-                            <td><?php echo htmlspecialchars($rol['descripcion'] ?? 'Sin descripción'); ?></td>
+                            <td><?php echo htmlspecialchars($titular['cedula']); ?></td>
+                            <td><?php echo htmlspecialchars($titular['nombres']); ?></td>
+                            <td><?php echo htmlspecialchars($titular['apellidos']); ?></td>
+                            <td><?php echo htmlspecialchars($titular['email']); ?></td>
+                            <td><?php echo htmlspecialchars($titular['celular']); ?></td>
+                            <td><?php echo date('d/m/Y', strtotime($titular['fecha_registro'])); ?></td>
                             <td class="actions">
-                                <div class="btn-icon btn-edit" title="Editar" onclick="location.href='index.php?controller=superadmin&action=editar_rol&id=<?php echo $rol['id']; ?>'">
+                                <a href="index.php?controller=usuario&action=verTitular&id=<?php echo $titular['id']; ?>" class="btn-icon btn-view" title="Ver detalles">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="index.php?controller=usuario&action=editarTitular&id=<?php echo $titular['id']; ?>" class="btn-icon btn-edit" title="Editar">
                                     <i class="fas fa-edit"></i>
-                                </div>
-                                <div class="btn-icon btn-delete" title="Eliminar" onclick="mostrarModalEliminar(<?php echo $rol['id']; ?>, '<?php echo htmlspecialchars($rol['nombre']); ?>')">
+                                </a>
+                                <div class="btn-icon btn-delete" title="Eliminar" onclick="mostrarModalEliminar(<?php echo $titular['id']; ?>)">
                                     <i class="fas fa-trash"></i>
                                 </div>
                             </td>
@@ -455,15 +478,7 @@
                         <?php endforeach; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="4">
-                                <div class="empty-state">
-                                    <i class="fas fa-user-tag"></i>
-                                    <p>No hay roles definidos en el sistema.</p>
-                                    <a href="index.php?controller=superadmin&action=crear_rol" class="btn btn-primary">
-                                        <i class="fas fa-plus"></i> Crear Primer Rol
-                                    </a>
-                                </div>
-                            </td>
+                            <td colspan="7" style="text-align: center;">No hay titulares registrados</td>
                         </tr>
                     <?php endif; ?>
                 </tbody>
@@ -471,23 +486,27 @@
         </div>
     </div>
 
-    <!-- Modal para confirmar eliminación -->
-    <div id="modalEliminar" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal()">&times;</span>
-            <h2 class="modal-title">Confirmar Eliminación</h2>
-            <p id="mensajeEliminar">¿Estás seguro de que deseas eliminar este rol?</p>
-            <p class="text-warning">Nota: Solo se pueden eliminar roles que no tengan usuarios asociados.</p>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
-                <button class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
-            </div>
+  <!-- Modal para confirmar eliminación -->
+<div id="modalEliminar" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="cerrarModal()">&times;</span>
+        <h2 class="modal-title">Confirmar eliminación</h2>
+        <p>¿Estás seguro de que deseas eliminar este titular? Esta acción también eliminará:</p>
+        <ul>
+            <li>Todos los estudiantes asociados al titular</li>
+            <li>Todas las referencias personales del titular</li>
+        </ul>
+        <p><strong>Advertencia:</strong> Esta acción no se puede deshacer y se perderá toda la información relacionada.</p>
+        <div class="modal-buttons">
+            <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+            <button class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
         </div>
     </div>
+</div>
 
     <script>
         // Búsqueda en la tabla
-        document.getElementById('searchRoles').addEventListener('keyup', function() {
+        document.getElementById('searchTitulares').addEventListener('keyup', function() {
             const searchTerm = this.value.toLowerCase();
             const rows = document.querySelectorAll('tbody tr');
             
@@ -501,14 +520,12 @@
             });
         });
         
-        // Modal para eliminar rol
-        let rolIdEliminar = null;
+        // Modal para eliminar titular
+        let titularIdEliminar = null;
         const modal = document.getElementById('modalEliminar');
-        const mensajeEliminar = document.getElementById('mensajeEliminar');
         
-        function mostrarModalEliminar(id, nombre) {
-            rolIdEliminar = id;
-            mensajeEliminar.textContent = `¿Estás seguro de que deseas eliminar el rol "${nombre}"?`;
+        function mostrarModalEliminar(id) {
+            titularIdEliminar = id;
             modal.style.display = 'block';
         }
         
@@ -525,20 +542,20 @@
         
         // Configurar el botón de confirmación de eliminación
         document.getElementById('btnConfirmarEliminar').addEventListener('click', function() {
-            if (rolIdEliminar) {
-                // Enviar solicitud para eliminar rol
-                fetch('index.php?controller=superadmin&action=eliminar_rol', {
+            if (titularIdEliminar) {
+                // Enviar solicitud para eliminar titular
+                fetch('index.php?controller=usuario&action=eliminarTitular', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
                     },
-                    body: `id=${rolIdEliminar}`
+                    body: `id=${titularIdEliminar}`
                 })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
                         // Recargar la página para reflejar los cambios
-                        window.location.href = 'index.php?controller=superadmin&action=gestionarRoles&success=1';
+                        window.location.reload();
                     } else {
                         alert(data.message);
                     }

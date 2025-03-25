@@ -168,6 +168,37 @@
             margin-bottom: 20px;
         }
         
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        .action-button {
+            padding: 12px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.3s;
+        }
+        
+        .action-button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .action-button i {
+            margin-right: 8px;
+        }
+        
         /* Info Cards */
         .info-cards {
             display: grid;
@@ -236,12 +267,24 @@
             </div>
         </div>
         <ul class="menu">
-            <li class="menu-item active">
+            <li class="menu-item active" onclick="location.href='index.php?controller=usuario&action=dashboard'">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </li>
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=listarTitulares'">
+                <i class="fas fa-user-tie"></i>
+                <span>Titulares</span>
+            </li>
+            <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=listarEstudiantes'">
+                <i class="fas fa-user-graduate"></i>
+                <span>Estudiantes</span>
+            </li>
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=dashboard'">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Finanzas</span>
+            </li>
             <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=perfil'">
-                <i class="fas fa-user"></i>
+                <i class="fas fa-cog"></i>
                 <span>Mi Perfil</span>
             </li>
         </ul>
@@ -254,56 +297,61 @@
     <!-- Main Content -->
     <div class="main-content">
         <div class="header">
-            <h1 class="page-title">Dashboard de Usuario</h1>
+            <h1 class="page-title">Bienvenido</h1>
             <div class="user-badge">
                 <?php echo htmlspecialchars($_SESSION['usuario_rol'] ?? 'Usuario'); ?>
             </div>
         </div>
 
         <div class="welcome-section">
-            <h2 class="welcome-title">¡Bienvenido, <?php echo htmlspecialchars($_SESSION['usuario_nombre'] ?? 'Usuario'); ?>!</h2>
-            <p class="welcome-message">Este es tu portal personalizado. Aquí podrás acceder a tu información y gestionar tu perfil.</p>
+            <h2 class="welcome-title">¡Hola, <?php echo htmlspecialchars($_SESSION['usuario_nombre'] ?? 'Usuario'); ?>!</h2>
+            <p class="welcome-message">Bienvenido al sistema de gestión. Por favor seleccione una de las opciones para continuar.</p>
+            
+            <div class="action-buttons">
+                <a href="index.php?controller=usuario&action=listarTitulares" class="action-button">
+                    <i class="fas fa-user-tie"></i> Gestionar Titulares
+                </a>
+                <a href="index.php?controller=usuario&action=listarEstudiantes" class="action-button">
+                    <i class="fas fa-user-graduate"></i> Gestionar Estudiantes
+                </a>
+                <a href="index.php?controller=finanzas&action=dashboard" class="action-button" style="background-color: var(--success-color);">
+                    <i class="fas fa-dollar-sign"></i> Gestionar Finanzas
+                </a>
+            </div>
         </div>
 
         <div class="info-cards">
+            <div class="info-card">
+                <h3 class="info-card-title">Gestión de Titulares</h3>
+                <div class="info-card-content">
+                    <p>En esta sección podrá registrar nuevos titulares, cada uno puede tener hasta 10 estudiantes asociados.</p>
+                    <p>También podrá editar la información de los titulares existentes y sus estudiantes.</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <h3 class="info-card-title">Gestión de Estudiantes</h3>
+                <div class="info-card-content">
+                    <p>Aquí podrá ver todos los estudiantes registrados en el sistema.</p>
+                    <p>Puede filtrar por cursos, editar sus datos y más.</p>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <h3 class="info-card-title">Gestión de Finanzas</h3>
+                <div class="info-card-content">
+                    <p>Registre y administre los pagos de los titulares y estudiantes.</p>
+                    <p>Genere contratos y recibos automáticamente para cada transacción.</p>
+                    <p><a href="index.php?controller=finanzas&action=crearContrato" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">Crear nuevo contrato</a></p>
+                </div>
+            </div>
+            
             <div class="info-card">
                 <h3 class="info-card-title">Mi Información</h3>
                 <div class="info-card-content">
                     <p><strong>Email:</strong> <?php echo htmlspecialchars($_SESSION['usuario_email'] ?? 'No disponible'); ?></p>
                     <p><strong>Rol:</strong> <?php echo htmlspecialchars($_SESSION['usuario_rol'] ?? 'No disponible'); ?></p>
-                    <p><strong>ID de Usuario:</strong> <?php echo htmlspecialchars($_SESSION['usuario_id'] ?? 'No disponible'); ?></p>
-                </div>
-            </div>
-            
-            <div class="info-card">
-                <h3 class="info-card-title">Mi Perfil</h3>
-                <div class="info-card-content">
-                    <p>Puedes ver y actualizar tu información personal desde la sección "Mi Perfil".</p>
-                    <p style="margin-top: 15px;">
-                        <a href="index.php?controller=usuario&action=perfil" style="
-                            display: inline-block;
-                            padding: 8px 15px;
-                            background-color: var(--primary-color);
-                            color: white;
-                            text-decoration: none;
-                            border-radius: 4px;
-                            font-weight: bold;
-                        ">Ir a Mi Perfil</a>
-                    </p>
-                </div>
-            </div>
-            
-            <div class="info-card">
-                <h3 class="info-card-title">Datos de Usuario</h3>
-                <div class="info-card-content">
-                    <?php if (isset($usuario)): ?>
-                        <p><strong>Cédula:</strong> <?php echo htmlspecialchars($usuario['cedula'] ?? 'No disponible'); ?></p>
-                        <p><strong>Ciudad:</strong> <?php echo htmlspecialchars($usuario['ciudad'] ?? 'No disponible'); ?></p>
-                        <p><strong>País:</strong> <?php echo htmlspecialchars($usuario['pais'] ?? 'No disponible'); ?></p>
-                        <p><strong>Organización:</strong> <?php echo htmlspecialchars($usuario['organizacion'] ?? 'No disponible'); ?></p>
-                    <?php else: ?>
-                        <p>Información detallada no disponible. Accede a "Mi Perfil" para ver todos tus datos.</p>
-                    <?php endif; ?>
+                    <p>Puede actualizar su información personal en la sección <a href="index.php?controller=usuario&action=perfil" style="color: var(--primary-color); text-decoration: none; font-weight: bold;">Mi Perfil</a>.</p>
                 </div>
             </div>
         </div>

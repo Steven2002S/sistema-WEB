@@ -5,6 +5,7 @@ class SuperAdminController {
     private $superAdminModel;
     private $usuarioModel;
     private $rolModel;
+    private $cursoModel;
     
     /**
      * Constructor del controlador de superadmin
@@ -16,7 +17,9 @@ class SuperAdminController {
         $this->authController = $authController;
         $this->superAdminModel = new SuperAdminModel($database);
         $this->usuarioModel = new UsuarioModel($database);
+        $this->cursoModel = new CursoModel($database);
         $this->rolModel = new RolModel($database);
+
         
         // Verificar que el usuario sea superadmin en cada acción
         $this->verificarSuperAdmin();
@@ -593,7 +596,10 @@ public function estadisticas() {
     // Obtener todos los roles
     $roles = $this->rolModel->obtenerTodos();
     
-    // Obtener usuarios recientes para mostrar en la sección de actividad
+    // Obtener todos los cursos
+    $cursos = $this->cursoModel->obtenerTodos();
+    
+    // Obtener usuarios recientes
     $query = "SELECT u.id, u.nombres, u.apellidos, u.correo, u.created_at
               FROM usuarios u
               ORDER BY u.created_at DESC
@@ -606,9 +612,223 @@ public function estadisticas() {
         $usuarios_recientes[] = $row;
     }
     
+    // Obtener cursos recientes
+    $query = "SELECT c.id, c.nombre, c.created_at
+              FROM cursos c
+              ORDER BY c.created_at DESC
+              LIMIT 10";
+    
+    $result = $this->db->getConnection()->query($query);
+    $cursos_recientes = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $cursos_recientes[] = $row;
+    }
+    
     // Cargar la vista de estadísticas
     include 'views/superadmin/estadisticas.php';
 }
 
+/**
+ * Acción para listar cursos
+ */
+public function listarCursos() {
+    // Obtener todos los cursos
+    $cursos = $this->cursoModel->obtenerTodos();
+    
+    // Cargar la vista de cursos
+    include 'views/superadmin/cursos.php';
+}
+
+/**
+ * Acción para crear un nuevo curso
+ */
+public function crearCurso() {
+    $mensaje = '';
+    $error = false;
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Validar datos de entrada
+        $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING);
+        $descripcion = filter_input(INPUT_POST, 'descripcion', FILTER_SANITIZE_STRING);
+        
+        // Verificar datos obligatorios
+        if (!$nombre) {
+            $error = true;
+            $mensaje = 'Por favor, proporciona un nombre para el curso.';
+        } else {
+            // Datos del curso a crear
+            $datos = [
+                'nombre' => $nombre,
+                'descripcion' => $descripcion ?? ''
+            ];
+            
+            // Obtener ID del superadmin actual
+            $superadmin_id = $this->authController->getUsuarioId();
+            
+            // Intentar crear el curso
+            $resultado = $this->cursoModel->crear($datos, $superadmin_id);
+            
+            if ($resultado) {
+                $mensaje = 'Curso creado con éxito.';
+                
+                // Redirigir a la lista de cursos
+                header('Location: index.php?controller=superadmin&action=listarCursos&success=1');
+                exit;
+            } else {
+                $error = true;
+                $mensaje = 'Error al crear el curso.';
+            }
+        }
+    }
+    
+    // Cargar vista de creación de curso
+    include 'views/superadmin/crear_curso.php';
+}
+
+/**
+ * Acción para editar un curso existente
+ */
+public function editarCurso() {
+    $mensaje = '';
+    $error = false;
+    
+    // Obtener ID del curso a editar
+    $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+    
+    if (!$id) {
+        header('Location: index.php?controller=superadmin&action=listarCursos');
+        exit;
+    }
+    
+    // Obtener datos del curso
+    $curso = $this->cursoModel->obtenerPorId($id);
+    
+    if (!$curso) {
+        header('Location: index.php?controller=superadmin&action=listarCursos');
+        exit;
+    }
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Validar datos de entrada
+        $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING);
+        $descripcion = filter_input(INPUT_POST, 'descripcion', FILTER_SANITIZE_STRING);
+        $estado = filter_input(INPUT_POST, 'estado');
+        
+        // Verificar datos obligatorios
+        if (!$nombre) {
+            $error = true;
+            $mensaje = 'Por favor, proporciona un nombre para el curso.';
+        } else {
+            // Datos del curso a actualizar
+            $datos = [
+                'nombre' => $nombre,
+                'descripcion' => $descripcion ?? ''
+            ];
+            
+            // Incluir estado solo si se proporciona
+            if ($estado) {
+                $datos['estado'] = $estado;
+            }
+            
+            // Intentar actualizar el curso
+            $resultado = $this->cursoModel->actualizar($id, $datos);
+            
+            if ($resultado) {
+                $mensaje = 'Curso actualizado con éxito.';
+                
+                // Recargar datos del curso
+                $curso = $this->cursoModel->obtenerPorId($id);
+                
+                // Redirigir a la lista de cursos
+                header('Location: index.php?controller=superadmin&action=listarCursos&success=1');
+                exit;
+            } else {
+                $error = true;
+                $mensaje = 'Error al actualizar el curso.';
+            }
+        }
+    }
+    
+    // Cargar vista de edición
+    include 'views/superadmin/editar_curso.php';
+}
+
+/**
+ * Acción para eliminar un curso
+ */
+public function eliminarCurso() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Obtener ID del curso a eliminar
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        
+        if (!$id) {
+            $this->responderJSON(false, 'ID de curso inválido');
+            return;
+        }
+        
+        // Intentar eliminar el curso
+        $resultado = $this->cursoModel->eliminar($id);
+        
+        if ($resultado) {
+            $this->responderJSON(true, 'Curso eliminado con éxito');
+        } else {
+            $this->responderJSON(false, 'Error al eliminar el curso');
+        }
+    } else {
+        $this->responderJSON(false, 'Método no permitido');
+    }
+}
+
+/**
+ * Acción para cambiar el estado de un curso (activar/desactivar)
+ */
+public function cambiarEstadoCurso() {
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Obtener ID del curso y nuevo estado
+        $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+        $estado = filter_input(INPUT_POST, 'estado', FILTER_SANITIZE_STRING);
+        
+        if (!$id || !$estado) {
+            $this->responderJSON(false, 'Parámetros inválidos');
+            return;
+        }
+        
+        // Intentar cambiar el estado
+        $resultado = $this->cursoModel->cambiarEstado($id, $estado);
+        
+        if ($resultado) {
+            $this->responderJSON(true, 'Estado actualizado con éxito');
+        } else {
+            $this->responderJSON(false, 'Error al actualizar el estado');
+        }
+    } else {
+        $this->responderJSON(false, 'Método no permitido');
+    }
+}
+
+/**
+ * Acción para ver detalles de un curso
+ */
+public function verCurso() {
+    // Obtener ID del curso a ver
+    $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+    
+    if (!$id) {
+        header('Location: index.php?controller=superadmin&action=listarCursos');
+        exit;
+    }
+    
+    // Obtener datos del curso
+    $curso = $this->cursoModel->obtenerPorId($id);
+    
+    if (!$curso) {
+        header('Location: index.php?controller=superadmin&action=listarCursos');
+        exit;
+    }
+    
+    // Cargar vista de detalles
+    include 'views/superadmin/ver_curso.php';
+}
 }
 ?>
