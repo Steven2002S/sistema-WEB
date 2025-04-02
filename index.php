@@ -4,7 +4,7 @@ ini_set('display_errors', 1);
 error_reporting(E_ALL);
 
 // Cargar clases necesarias
-require_once __DIR__ . '/../config/config.php';
+require_once 'config/Config.php';
 require_once 'config/Database.php';
 require_once 'models/SuperAdminModel.php';
 require_once 'models/UsuarioModel.php';
@@ -228,7 +228,7 @@ try {
             
         default:
             // Si el controlador no existe, mostrar página de login
-            include 'views/login.html';
+            header('Location: ' . BASE_URL . '/views/login.html');
             break;
     }
 } catch (Exception $e) {

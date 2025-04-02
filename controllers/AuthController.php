@@ -97,8 +97,7 @@ class AuthController {
             $this->responderJSON(false, 'Email o contraseña incorrectos');
         } else {
             // Si no es POST, redirigir a la página de login
-            // CORREGIDO: Usa la ruta correcta al login.html
-            header('Location: views/login.html');
+            header('Location: ' . BASE_URL . '/views/login.html');
             exit;
         }
     }
@@ -119,7 +118,7 @@ class AuthController {
         session_destroy();
         
         // Redirigir a la página de login
-        header('Location: views/login.html');
+        header('Location: ' . BASE_URL . '/views/login.html');
         exit;
     }
     
