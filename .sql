@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     FOREIGN KEY (created_by) REFERENCES superadmin(id)
 );
 
--- Tabla para los cursos (incluye campos de fecha y horario directamente)
+-- Tabla para los cursos 
 CREATE TABLE IF NOT EXISTS cursos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
