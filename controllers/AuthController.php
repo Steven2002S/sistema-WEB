@@ -60,7 +60,7 @@ class AuthController {
                 $_SESSION['token'] = bin2hex(random_bytes(32));
                 
                 // Redirigir al dashboard de superadmin (URL absoluta desde la raíz)
-                $this->responderJSON(true, 'Inicio de sesión exitoso', '/SISTEMA-WEB/index.php?controller=superadmin&action=dashboard');
+                $this->responderJSON(true, 'Inicio de sesión exitoso', BASE_URL . '/index.php?controller=superadmin&action=dashboard');
                 return;
             }
             
@@ -87,7 +87,8 @@ class AuthController {
                 $_SESSION['token'] = bin2hex(random_bytes(32));
                 
                 // Redirigir al dashboard de usuario (URL absoluta desde la raíz)
-                $this->responderJSON(true, 'Inicio de sesión exitoso', '/SISTEMA-WEB/index.php?controller=usuario&action=dashboard');
+                $this->responderJSON(true, 'Inicio de sesión exitoso', BASE_URL . '/index.php?controller=usuario&action=dashboard');
+
                 return;
             }
             
