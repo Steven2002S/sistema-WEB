@@ -220,6 +220,9 @@ try {
                 case 'getEstudiantesPorTitular':
                     $finanzasController->getEstudiantesPorTitular();
                     break;
+                case 'historialPagos':
+                    $finanzasController->historialPagos();
+                    break;
                 default:
                     $finanzasController->dashboard();
                     break;

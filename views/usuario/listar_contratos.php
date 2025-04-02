@@ -1,4 +1,3 @@
-<!-- views/usuario/finanzas/listar_contratos.php -->
 <!DOCTYPE html>
 <html lang="es">
 <head>

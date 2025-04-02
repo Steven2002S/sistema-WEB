@@ -180,7 +180,7 @@ $usuario = $this->usuarioModel->obtenerPorId($usuario_id);
                             $mensaje = 'Contrato y recibo creados con éxito.';
                             
                             // Redirigir a la lista de contratos
-                            header('Location: index.php?controller=finanzas&action=listarContratos&success=1');
+                            header('Location: index.php?controller=finanzas&action=dashboard&success=1');
                             exit;
                         } else {
                             $error = true;
@@ -344,7 +344,7 @@ public function verContrato() {
                         $contrato = $this->contratoModel->obtenerPorId($id);
                         
                         // Redirigir a la lista de contratos después de actualizar
-                        header('Location: index.php?controller=finanzas&action=listarContratos&success=1');
+                        header('Location: index.php?controller=finanzas&action=dashboard&success=1');
                         exit;
                     } else {
                         $error = true;
@@ -553,5 +553,81 @@ public function verContrato() {
             $this->responderJSON(false, 'Método no permitido');
         }
     }
+    /**
+ * Acción para mostrar el historial de pagos
+ */
+public function historialPagos() {
+    // Obtener datos del usuario actual
+    $usuario_id = $this->authController->getUsuarioId();
+    $usuario = $this->usuarioModel->obtenerPorId($usuario_id);
+    
+    // Parámetros de filtrado
+    $titular_id = filter_input(INPUT_GET, 'titular_id', FILTER_VALIDATE_INT);
+    $estudiante_id = filter_input(INPUT_GET, 'estudiante_id', FILTER_VALIDATE_INT);
+    $fecha_inicio = filter_input(INPUT_GET, 'fecha_inicio');
+    $fecha_fin = filter_input(INPUT_GET, 'fecha_fin');
+    
+    // Consulta base
+    $query = "SELECT c.*, 
+              t.cedula AS titular_cedula, t.nombres AS titular_nombres, t.apellidos AS titular_apellidos,
+              e.cedula AS estudiante_cedula, e.nombres AS estudiante_nombres, e.apellidos AS estudiante_apellidos
+              FROM contratos c
+              INNER JOIN titulares t ON c.titular_id = t.id
+              INNER JOIN estudiantes e ON c.estudiante_id = e.id
+              WHERE (c.verificado_por = ? OR c.ejecutivo = ?)";
+    
+    $params = [$usuario_id, $usuario_id];
+    $types = "ii";
+    
+    // Aplicar filtros
+    if ($titular_id) {
+        $query .= " AND c.titular_id = ?";
+        $params[] = $titular_id;
+        $types .= "i";
+    }
+    
+    if ($estudiante_id) {
+        $query .= " AND c.estudiante_id = ?";
+        $params[] = $estudiante_id;
+        $types .= "i";
+    }
+    
+    if ($fecha_inicio) {
+        $query .= " AND c.fecha_emision >= ?";
+        $params[] = $fecha_inicio;
+        $types .= "s";
+    }
+    
+    if ($fecha_fin) {
+        $query .= " AND c.fecha_emision <= ?";
+        $params[] = $fecha_fin;
+        $types .= "s";
+    }
+    
+    // Ordenamiento
+    $query .= " ORDER BY c.fecha_emision DESC";
+    
+    // Preparar y ejecutar consulta
+    $stmt = $this->db->prepare($query);
+    $stmt->bind_param($types, ...$params);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $pagos = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $pagos[] = $row;
+    }
+    
+    // Obtener titulares y estudiantes para los filtros
+    $titulares = $this->titularModel->obtenerPorUsuario($usuario_id);
+    $estudiantes = [];
+    
+    if ($titular_id) {
+        $estudiantes = $this->estudianteModel->obtenerPorTitular($titular_id);
+    }
+    
+    // Cargar vista de historial de pagos
+    include 'views/usuario/historial_pagos.php';
+}
 }
 ?>

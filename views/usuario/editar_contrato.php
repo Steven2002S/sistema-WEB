@@ -390,8 +390,8 @@
             </div>
             
             <div class="btn-group">
-    <a href="index.php?controller=finanzas&action=listarContratos" class="btn btn-secondary">Cancelar</a>
-    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="index.php?controller=finanzas&action=dashboard" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
 </div>
 
     <script>

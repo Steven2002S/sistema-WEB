@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalles del Contrato - Finanzas</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <style>
         :root {
             --primary-color: #0077c2;
@@ -307,22 +309,35 @@
             margin-top: 20px;
             margin-bottom: 30px;
         }
-        
         .recibo-signatures {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 50px;
+        display: flex;
+        justify-content: center;
+        gap: 100px;
+        margin-top: 50px;
+        align-items: flex-end; 
         }
-        
+
         .signature-line {
-            text-align: center;
-            min-width: 200px;
-            margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 200px;
         }
-        
+
+        .qr-code {
+        margin-bottom: 25px; 
+        }
+
         .signature-placeholder {
-            border-top: 1px solid var(--text-color);
-            margin-bottom: 5px;
+        width: 100%;
+        border-top: 1px solid var(--text-color);
+        margin-top: 10px; 
+        height: 1px;
+        }
+
+        .qr-code img {
+        width: 150px;
+        height: 150px;
         }
     </style>
 </head>
@@ -456,8 +471,8 @@
             </div>
             
             <div class="btn-group">
-                <a href="index.php?controller=finanzas&action=listarContratos" class="btn btn-secondary">Volver a la lista</a>
-                <a href="index.php?controller=finanzas&action=editarContrato&id=<?php echo $contrato['id']; ?>" class="btn btn-primary">Editar Contrato</a>
+            <a href="index.php?controller=finanzas&action=dashboard" class="btn btn-secondary">Volver a la Lista</a>
+            <a href="index.php?controller=finanzas&action=editarContrato&id=<?php echo $contrato['id']; ?>" class="btn btn-primary">Editar Contrato</a>
             </div>
         </div>
 
@@ -511,15 +526,15 @@
                 </div>
                 
                 <div class="recibo-signatures">
-                    <div class="signature-line">
-                        <div class="signature-placeholder"></div>
-                        <div>Firma del Receptor</div>
-                    </div>
-                    <div class="signature-line">
-                        <div class="signature-placeholder"></div>
-                        <div>Firma del Titular</div>
-                    </div>
-                </div>
+    <div class="signature-line">
+        <div id="qrcode" class="qr-code"></div>
+        <div>Firma del Vendedor</div>
+    </div>
+    <div class="signature-line">
+        <div class="signature-placeholder"></div>
+        <div>Firma del Titular</div>
+    </div>
+</div>
             </div>
             
             <div style="text-align: center; margin-top: 20px;">
@@ -546,6 +561,17 @@
             window.print();
             document.body.innerHTML = contenidoOriginal;
         }
+        document.addEventListener('DOMContentLoaded', function() {
+    // Generar el código QR
+    new QRCode(document.getElementById("qrcode"), {
+        text: "VENDEDOR: <?php echo $usuario['nombres'] . ' ' . $usuario['apellidos']; ?> | ID: <?php echo $usuario['id']; ?> | FECHA: <?php echo date('Y-m-d H:i:s'); ?> | CONTRATO: <?php echo $contrato['numero_contrato']; ?>",
+        width: 150,
+        height: 150,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+});
     </script>
 </body>
 </html>

@@ -6,7 +6,6 @@
     <title>Crear Curso - Administrador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Usar los mismos estilos que en dashboard.php */
         :root {
             --primary-color: #0077c2;
             --secondary-color: #0099ff;

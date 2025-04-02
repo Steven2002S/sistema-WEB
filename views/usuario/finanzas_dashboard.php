@@ -371,11 +371,15 @@
 
         <!-- Recent Contracts -->
         <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">Contratos Recientes</h2>
+        <div class="section-header">
+            <h2 class="section-title">Contratos Recientes</h2>
+            <div>
+            <a href="index.php?controller=finanzas&action=historialPagos" class="btn" style="background-color: #ffd600; color: #333; margin-right: 10px; font-weight: bold; transition: all 0.3s; display: inline-flex; align-items: center;">
+    <i class="fas fa-history" style="margin-right: 5px;"></i> Historial de Pagos
+</a>
                 <a href="index.php?controller=finanzas&action=crearContrato" class="btn btn-primary">Nuevo Contrato</a>
             </div>
-            
+        </div>
             <input type="text" class="search-box" id="searchContracts" placeholder="Buscar contrato...">
             
             <table>
@@ -422,10 +426,11 @@
             </table>
             
             <?php if (!empty($contratos) && count($contratos) > 5): ?>
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="index.php?controller=finanzas&action=listarContratos" style="color: var(--primary-color); text-decoration: none;">Ver todos los contratos</a>
-                </div>
-            <?php endif; ?>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="index.php?controller=finanzas&action=listarContratos" style="color: var(--primary-color); text-decoration: none; margin-right: 20px;">Ver todos los contratos</a>
+                <a href="index.php?controller=finanzas&action=historialPagos" style="color: var(--primary-color); text-decoration: none;">Ver historial de pagos</a>
+            </div>
+        <?php endif; ?>
         </div>
     </div>
 
