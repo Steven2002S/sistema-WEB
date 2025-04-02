@@ -294,16 +294,16 @@
                 <span>Gestión de Usuarios</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">
-              <i class="fas fa-book"></i>
-              <span>Gestión de Cursos</span>
+                <i class="fas fa-book"></i>
+                <span>Gestión de Cursos</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=gestionarRoles'">
                 <i class="fas fa-user-tag"></i>
                 <span>Roles</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=perfil'">
-                <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=informeFacturacion'">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Facturación</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
                 <i class="fas fa-chart-bar"></i>
@@ -315,6 +315,7 @@
             <span>Cerrar Sesión</span>
         </div>
     </div>
+
 
     <!-- Main Content -->
     <div class="main-content">

@@ -170,62 +170,83 @@ class UserController {
     }
     
     /**
-     * Acción para crear un nuevo titular con estudiantes y referencias
-     */
-    public function crearTitular() {
-        $mensaje = '';
-        $error = false;
+ * Acción para crear un nuevo titular con estudiantes y referencias
+ */
+public function crearTitular() {
+    $mensaje = '';
+    $error = false;
+    
+    // Obtener cursos para el formulario
+    $cursos = $this->cursoModel->obtenerTodos();
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Obtener datos del titular
+        $datos_titular = [
+            'cedula' => filter_input(INPUT_POST, 'cedula', FILTER_SANITIZE_STRING),
+            'nombres' => filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING),
+            'apellidos' => filter_input(INPUT_POST, 'apellidos', FILTER_SANITIZE_STRING),
+            'direccion' => filter_input(INPUT_POST, 'direccion', FILTER_SANITIZE_STRING),
+            'email' => filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL),
+            'empresa' => filter_input(INPUT_POST, 'empresa', FILTER_SANITIZE_STRING),
+            'celular' => filter_input(INPUT_POST, 'celular', FILTER_SANITIZE_STRING),
+            'telefono_casa' => filter_input(INPUT_POST, 'telefono_casa', FILTER_SANITIZE_STRING),
+            'cargo' => filter_input(INPUT_POST, 'cargo', FILTER_SANITIZE_STRING),
+            'telefono_trabajo' => filter_input(INPUT_POST, 'telefono_trabajo', FILTER_SANITIZE_STRING)
+        ];
         
-        // Obtener cursos para el formulario
-        $cursos = $this->cursoModel->obtenerTodos();
-        
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Obtener datos del titular
-            $datos_titular = [
-                'cedula' => filter_input(INPUT_POST, 'cedula', FILTER_SANITIZE_STRING),
-                'nombres' => filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING),
-                'apellidos' => filter_input(INPUT_POST, 'apellidos', FILTER_SANITIZE_STRING),
-                'direccion' => filter_input(INPUT_POST, 'direccion', FILTER_SANITIZE_STRING),
-                'email' => filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL),
-                'empresa' => filter_input(INPUT_POST, 'empresa', FILTER_SANITIZE_STRING),
-                'celular' => filter_input(INPUT_POST, 'celular', FILTER_SANITIZE_STRING),
-                'telefono_casa' => filter_input(INPUT_POST, 'telefono_casa', FILTER_SANITIZE_STRING),
-                'cargo' => filter_input(INPUT_POST, 'cargo', FILTER_SANITIZE_STRING),
-                'telefono_trabajo' => filter_input(INPUT_POST, 'telefono_trabajo', FILTER_SANITIZE_STRING)
-            ];
+        // Verificar datos obligatorios del titular
+        if (!$datos_titular['cedula'] || !$datos_titular['nombres'] || !$datos_titular['apellidos'] || !$datos_titular['direccion']) {
+            $error = true;
+            $mensaje = 'Por favor, completa todos los campos obligatorios del titular.';
+        } else {
+            // Obtener ID del usuario actual
+            $usuario_id = $this->authController->getUsuarioId();
             
-            // Verificar datos obligatorios del titular
-            if (!$datos_titular['cedula'] || !$datos_titular['nombres'] || !$datos_titular['apellidos'] || !$datos_titular['direccion']) {
-                $error = true;
-                $mensaje = 'Por favor, completa todos los campos obligatorios del titular.';
-            } else {
-                // Obtener ID del usuario actual
-                $usuario_id = $this->authController->getUsuarioId();
+            // Crear el titular
+            $titular_id = $this->titularModel->crear($datos_titular, $usuario_id);
+            
+            if ($titular_id) {
+                // Procesar estudiantes
+                $estudiantes_creados = 0;
                 
-                // Crear el titular
-                $titular_id = $this->titularModel->crear($datos_titular, $usuario_id);
-                
-                if ($titular_id) {
-                    // Procesar estudiantes
-                    $estudiantes_creados = 0;
-                    
-                    // Determinar cuántos estudiantes se enviaron
-                    $total_estudiantes = isset($_POST['estudiante_cedula']) ? count($_POST['estudiante_cedula']) : 0;
+                // Verificar si hay datos de estudiantes
+                if (isset($_POST['estudiante_nombres']) && is_array($_POST['estudiante_nombres'])) {
+                    $total_estudiantes = count($_POST['estudiante_nombres']);
                     
                     // Limitamos a 10 estudiantes máximo por titular
                     $total_estudiantes = min($total_estudiantes, 10);
                     
                     for ($i = 0; $i < $total_estudiantes; $i++) {
-                        // Verificar que al menos se haya proporcionado el nombre y apellido
-                        if (!empty($_POST['estudiante_nombres'][$i]) && !empty($_POST['estudiante_apellidos'][$i])) {
+                        // Verificar que al menos se haya proporcionado el nombre, apellido, edad y curso
+                        if (!empty($_POST['estudiante_nombres'][$i]) && 
+                            !empty($_POST['estudiante_apellidos'][$i]) && 
+                            isset($_POST['estudiante_edad'][$i]) && 
+                            !empty($_POST['estudiante_curso_id'][$i])) {
+                            
+                            // Verificar el índice para los campo de discapacidad
+                            $tiene_discapacidad = 'no';
+                            $observaciones_discapacidad = null;
+                            
+                            if (isset($_POST['estudiante_tiene_discapacidad'][$i])) {
+                                $tiene_discapacidad = $_POST['estudiante_tiene_discapacidad'][$i];
+                                
+                                // Solo usar observaciones si tiene discapacidad
+                                if ($tiene_discapacidad === 'si' && isset($_POST['estudiante_observaciones_discapacidad'][$i])) {
+                                    $observaciones_discapacidad = $_POST['estudiante_observaciones_discapacidad'][$i];
+                                }
+                            }
+                            
                             $datos_estudiante = [
-                                'cedula' => filter_var($_POST['estudiante_cedula'][$i], FILTER_SANITIZE_STRING),
+                                'cedula' => isset($_POST['estudiante_cedula'][$i]) ? filter_var($_POST['estudiante_cedula'][$i], FILTER_SANITIZE_STRING) : null,
                                 'nombres' => filter_var($_POST['estudiante_nombres'][$i], FILTER_SANITIZE_STRING),
                                 'apellidos' => filter_var($_POST['estudiante_apellidos'][$i], FILTER_SANITIZE_STRING),
                                 'edad' => filter_var($_POST['estudiante_edad'][$i], FILTER_VALIDATE_INT),
                                 'curso_id' => filter_var($_POST['estudiante_curso_id'][$i], FILTER_VALIDATE_INT),
-                                'talla' => filter_var($_POST['estudiante_talla'][$i], FILTER_SANITIZE_STRING),
-                                'titular_id' => $titular_id
+                                'talla' => isset($_POST['estudiante_talla'][$i]) ? filter_var($_POST['estudiante_talla'][$i], FILTER_SANITIZE_STRING) : null,
+                                'titular_id' => $titular_id, // Aquí es crucial asignar el ID del titular recién creado
+                                'fecha_nacimiento' => isset($_POST['estudiante_fecha_nacimiento'][$i]) ? $_POST['estudiante_fecha_nacimiento'][$i] : null,
+                                'tiene_discapacidad' => $tiene_discapacidad,
+                                'observaciones_discapacidad' => $observaciones_discapacidad
                             ];
                             
                             // Crear estudiante
@@ -234,51 +255,52 @@ class UserController {
                             }
                         }
                     }
-                    
-                    // Procesar referencias personales
-                    $referencias_creadas = 0;
-                    
-                    // Determinar si se envió una referencia
-                    if (!empty($_POST['referencia_nombres']) && !empty($_POST['referencia_apellidos'])) {
-                        $datos_referencia = [
-                            'nombres' => filter_input(INPUT_POST, 'referencia_nombres', FILTER_SANITIZE_STRING),
-                            'apellidos' => filter_input(INPUT_POST, 'referencia_apellidos', FILTER_SANITIZE_STRING),
-                            'direccion' => filter_input(INPUT_POST, 'referencia_direccion', FILTER_SANITIZE_STRING),
-                            'email' => filter_input(INPUT_POST, 'referencia_email', FILTER_SANITIZE_EMAIL),
-                            'celular' => filter_input(INPUT_POST, 'referencia_celular', FILTER_SANITIZE_STRING),
-                            'telefono_casa' => filter_input(INPUT_POST, 'referencia_telefono_casa', FILTER_SANITIZE_STRING),
-                            'empresa' => filter_input(INPUT_POST, 'referencia_empresa', FILTER_SANITIZE_STRING),
-                            'cargo' => filter_input(INPUT_POST, 'referencia_cargo', FILTER_SANITIZE_STRING),
-                            'telefono_trabajo' => filter_input(INPUT_POST, 'referencia_telefono_trabajo', FILTER_SANITIZE_STRING),
-                            'titular_id' => $titular_id
-                        ];
-                        
-                        // Crear referencia
-                        if ($this->referenciaModel->crear($datos_referencia)) {
-                            $referencias_creadas++;
-                        }
-                    }
-                    
-                    $mensaje = "Titular creado con éxito. Se han registrado $estudiantes_creados estudiante(s)";
-                    if ($referencias_creadas > 0) {
-                        $mensaje .= " y $referencias_creadas referencia(s) personal(es).";
-                    } else {
-                        $mensaje .= ".";
-                    }
-                    
-                    // Redirigir a la lista de titulares
-                    header('Location: index.php?controller=usuario&action=listarTitulares&success=1');
-                    exit;
-                } else {
-                    $error = true;
-                    $mensaje = 'Error al crear el titular. Verifica que la cédula no esté en uso.';
                 }
+                
+                // Procesar referencias personales
+                $referencias_creadas = 0;
+                
+                // Determinar si se envió una referencia
+                if (!empty($_POST['referencia_nombres']) && !empty($_POST['referencia_apellidos'])) {
+                    $datos_referencia = [
+                        'nombres' => filter_input(INPUT_POST, 'referencia_nombres', FILTER_SANITIZE_STRING),
+                        'apellidos' => filter_input(INPUT_POST, 'referencia_apellidos', FILTER_SANITIZE_STRING),
+                        'direccion' => filter_input(INPUT_POST, 'referencia_direccion', FILTER_SANITIZE_STRING),
+                        'email' => filter_input(INPUT_POST, 'referencia_email', FILTER_SANITIZE_EMAIL),
+                        'celular' => filter_input(INPUT_POST, 'referencia_celular', FILTER_SANITIZE_STRING),
+                        'telefono_casa' => filter_input(INPUT_POST, 'referencia_telefono_casa', FILTER_SANITIZE_STRING),
+                        'empresa' => filter_input(INPUT_POST, 'referencia_empresa', FILTER_SANITIZE_STRING),
+                        'cargo' => filter_input(INPUT_POST, 'referencia_cargo', FILTER_SANITIZE_STRING),
+                        'telefono_trabajo' => filter_input(INPUT_POST, 'referencia_telefono_trabajo', FILTER_SANITIZE_STRING),
+                        'titular_id' => $titular_id // Asociar la referencia al titular recién creado
+                    ];
+                    
+                    // Crear referencia
+                    if ($this->referenciaModel->crear($datos_referencia)) {
+                        $referencias_creadas++;
+                    }
+                }
+                
+                $mensaje = "Titular creado con éxito. Se han registrado $estudiantes_creados estudiante(s)";
+                if ($referencias_creadas > 0) {
+                    $mensaje .= " y $referencias_creadas referencia(s) personal(es).";
+                } else {
+                    $mensaje .= ".";
+                }
+                
+                // Redirigir a la lista de titulares
+                header('Location: index.php?controller=usuario&action=listarTitulares&success=1&mensaje=' . urlencode($mensaje));
+                exit;
+            } else {
+                $error = true;
+                $mensaje = 'Error al crear el titular. Verifica que la cédula no esté en uso.';
             }
         }
-        
-        // Cargar vista de creación
-        include 'views/usuario/crear_titular.php';
     }
+    
+    // Cargar vista de creación
+    include 'views/usuario/crear_titular.php';
+}
     
     /**
      * Acción para ver detalles de un titular
@@ -310,9 +332,15 @@ class UserController {
         
         // Obtener estudiantes del titular
         $estudiantes = $this->estudianteModel->obtenerPorTitular($id);
+        if (!$estudiantes) {
+            $estudiantes = []; // Asegurarse que sea un array vacío
+        }
         
         // Obtener referencias del titular
         $referencias = $this->referenciaModel->obtenerPorTitular($id);
+        if (!$referencias) {
+            $referencias = []; // Asegurarse que sea un array vacío
+        }
         
         // Cargar vista de detalles
         include 'views/usuario/ver_titular.php';
@@ -327,6 +355,12 @@ class UserController {
         
         // Obtener ID del titular
         $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        
+        // Obtener posibles mensajes de éxito o error de otras acciones
+        if (isset($_GET['mensaje'])) {
+            $mensaje = $_GET['mensaje'];
+            $error = isset($_GET['error']) && $_GET['error'] == '1';
+        }
         
         if (!$id) {
             header('Location: index.php?controller=usuario&action=listarTitulares');
@@ -351,14 +385,49 @@ class UserController {
         
         // Obtener estudiantes del titular
         $estudiantes = $this->estudianteModel->obtenerPorTitular($id);
+        if (!$estudiantes) {
+            $estudiantes = []; // Asegurarse que sea un array vacío
+        }
         
         // Obtener referencias del titular
         $referencias = $this->referenciaModel->obtenerPorTitular($id);
+        if (!$referencias) {
+            $referencias = []; // Asegurarse que sea un array vacío
+        }
         
         // Obtener cursos para el formulario
         $cursos = $this->cursoModel->obtenerTodos();
         
+        // Obtener titulares para el formulario de estudiantes
+        $titulares = $this->titularModel->obtenerPorUsuario($usuario_id);
+        
+        // Cargar vista de edición
+        include 'views/usuario/editar_titular.php';
+    }
+    
+    /**
+     * Acción para procesar la actualización de un titular existente
+     */
+    public function actualizarTitular() {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener ID del titular
+            $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+            
+            if (!$id) {
+                header('Location: index.php?controller=usuario&action=listarTitulares');
+                exit;
+            }
+            
+            // Verificar que el titular pertenece al usuario actual
+            $usuario_id = $this->authController->getUsuarioId();
+            $titular = $this->titularModel->obtenerPorId($id);
+            
+            if (!$titular || $titular['created_by'] != $usuario_id) {
+                // Si no tiene permiso, redirigir
+                header('Location: index.php?controller=usuario&action=listarTitulares');
+                exit;
+            }
+            
             // Obtener datos del titular
             $datos_titular = [
                 'cedula' => filter_input(INPUT_POST, 'cedula', FILTER_SANITIZE_STRING),
@@ -375,27 +444,27 @@ class UserController {
             
             // Verificar datos obligatorios del titular
             if (!$datos_titular['cedula'] || !$datos_titular['nombres'] || !$datos_titular['apellidos'] || !$datos_titular['direccion']) {
-                $error = true;
-                $mensaje = 'Por favor, completa todos los campos obligatorios del titular.';
-            } else {
-                // Actualizar el titular
-                $resultado = $this->titularModel->actualizar($id, $datos_titular);
-                
-                if ($resultado) {
-                    $mensaje = 'Titular actualizado con éxito.';
-                    
-                    // Redirigir a la vista de detalles
-                    header('Location: index.php?controller=usuario&action=verTitular&id=' . $id . '&success=1');
-                    exit;
-                } else {
-                    $error = true;
-                    $mensaje = 'Error al actualizar el titular. Verifica que la cédula no esté en uso.';
-                }
+                // Redirigir con error
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $id . '&error=1&mensaje=' . urlencode('Por favor, completa todos los campos obligatorios.'));
+                exit;
             }
+            
+            // Actualizar el titular
+            $resultado = $this->titularModel->actualizar($id, $datos_titular);
+            
+            if ($resultado) {
+                // Redirigir a la lista de titulares con mensaje de éxito
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $id . '&success=1&mensaje=' . urlencode('Titular actualizado con éxito.'));
+            } else {
+                // Redirigir con error
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $id . '&error=1&mensaje=' . urlencode('Error al actualizar el titular. Verifica que la cédula no esté en uso.'));
+            }
+            exit;
+        } else {
+            // Redirigir a la lista de titulares si no es POST
+            header('Location: index.php?controller=usuario&action=listarTitulares');
+            exit;
         }
-        
-        // Cargar vista de edición
-        include 'views/usuario/editar_titular.php';
     }
     
     /**
@@ -478,16 +547,112 @@ class UserController {
             
             // Redirigir a la vista de edición del titular
             if ($resultado) {
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&success=1');
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&success=1&mensaje=' . urlencode('Referencia creada con éxito.'));
             } else {
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1');
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1&mensaje=' . urlencode('Error al crear la referencia.'));
             }
             exit;
         } else {
-            // Redirigir a la lista de titulares si no es POST
+            // Si no es POST, mostrar formulario para crear referencia
+            $titular_id = filter_input(INPUT_GET, 'titular_id', FILTER_VALIDATE_INT);
+            
+            if (!$titular_id) {
+                header('Location: index.php?controller=usuario&action=listarTitulares');
+                exit;
+            }
+            
+            // Verificar que el titular pertenece al usuario actual
+            $usuario_id = $this->authController->getUsuarioId();
+            $titular = $this->titularModel->obtenerPorId($titular_id);
+            
+            if (!$titular || $titular['created_by'] != $usuario_id) {
+                header('Location: index.php?controller=usuario&action=listarTitulares');
+                exit;
+            }
+            
+            // Cargar vista para crear referencia
+            include 'views/usuario/crear_referencia.php';
+        }
+    }
+    
+    /**
+     * Acción para editar una referencia personal
+     */
+    public function editarReferencia() {
+        $mensaje = '';
+        $error = false;
+        
+        // Obtener ID de la referencia
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        
+        if (!$id) {
             header('Location: index.php?controller=usuario&action=listarTitulares');
             exit;
         }
+        
+        // Obtener datos de la referencia
+        $referencia = $this->referenciaModel->obtenerPorId($id);
+        
+        if (!$referencia) {
+            header('Location: index.php?controller=usuario&action=listarTitulares');
+            exit;
+        }
+        
+        // Verificar que la referencia está asociada a un titular del usuario actual
+        $usuario_id = $this->authController->getUsuarioId();
+        $titular = $this->titularModel->obtenerPorId($referencia['titular_id']);
+        
+        if (!$titular || $titular['created_by'] != $usuario_id) {
+            // Si no tiene permiso, redirigir
+            header('Location: index.php?controller=usuario&action=listarTitulares');
+            exit;
+        }
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener datos de la referencia
+            $datos_referencia = [
+                'nombres' => filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING),
+                'apellidos' => filter_input(INPUT_POST, 'apellidos', FILTER_SANITIZE_STRING),
+                'direccion' => filter_input(INPUT_POST, 'direccion', FILTER_SANITIZE_STRING),
+                'email' => filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL),
+                'celular' => filter_input(INPUT_POST, 'celular', FILTER_SANITIZE_STRING),
+                'telefono_casa' => filter_input(INPUT_POST, 'telefono_casa', FILTER_SANITIZE_STRING),
+                'empresa' => filter_input(INPUT_POST, 'empresa', FILTER_SANITIZE_STRING),
+                'cargo' => filter_input(INPUT_POST, 'cargo', FILTER_SANITIZE_STRING),
+                'telefono_trabajo' => filter_input(INPUT_POST, 'telefono_trabajo', FILTER_SANITIZE_STRING),
+                'titular_id' => filter_input(INPUT_POST, 'titular_id', FILTER_VALIDATE_INT)
+            ];
+            
+            // Verificar datos obligatorios
+            if (!$datos_referencia['nombres'] || !$datos_referencia['apellidos'] || !$datos_referencia['direccion']) {
+                $error = true;
+                $mensaje = 'Por favor, completa todos los campos obligatorios.';
+            } else {
+                // Verificar que el titular pertenece al usuario actual
+                $nuevo_titular = $this->titularModel->obtenerPorId($datos_referencia['titular_id']);
+                if (!$nuevo_titular || $nuevo_titular['created_by'] != $usuario_id) {
+                    $error = true;
+                    $mensaje = 'No tienes permiso para asociar esta referencia al titular seleccionado.';
+                } else {
+                    // Actualizar referencia
+                    $resultado = $this->referenciaModel->actualizar($id, $datos_referencia);
+                    
+                    if ($resultado) {
+                        // Redirigir a la vista de edición del titular
+                        header('Location: index.php?controller=usuario&action=editarTitular&id=' . $datos_referencia['titular_id'] . '&success=1&mensaje=' . urlencode('Referencia actualizada con éxito.'));
+                        exit;
+                    } else {
+                        $error = true;
+                        $mensaje = 'Error al actualizar la referencia.';
+                    }
+                }
+            }
+        }
+        // Obtener titulares para el formulario
+        $titulares = $this->titularModel->obtenerPorUsuario($usuario_id);
+        
+        // Cargar vista de edición
+        include 'views/usuario/editar_referencia.php';
     }
     
     /**
@@ -534,15 +699,57 @@ class UserController {
             
             // Redirigir a la vista de edición del titular
             if ($resultado) {
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&success=1');
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&success=1&mensaje=' . urlencode('Referencia actualizada con éxito.'));
             } else {
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1');
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1&mensaje=' . urlencode('Error al actualizar la referencia.'));
             }
             exit;
         } else {
             // Redirigir a la lista de titulares si no es POST
             header('Location: index.php?controller=usuario&action=listarTitulares');
             exit;
+        }
+    }
+    
+    /**
+     * Acción para eliminar una referencia
+     */
+    public function eliminarReferencia() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            // Obtener ID de la referencia a eliminar
+            $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
+            
+            if (!$id) {
+                $this->responderJSON(false, 'ID de referencia inválido');
+                return;
+            }
+            
+            // Verificar que la referencia está asociada a un titular del usuario actual
+            $usuario_id = $this->authController->getUsuarioId();
+            $referencia = $this->referenciaModel->obtenerPorId($id);
+            
+            if (!$referencia) {
+                $this->responderJSON(false, 'Referencia no encontrada');
+                return;
+            }
+            
+            $titular = $this->titularModel->obtenerPorId($referencia['titular_id']);
+            
+            if (!$titular || $titular['created_by'] != $usuario_id) {
+                $this->responderJSON(false, 'No tienes permiso para eliminar esta referencia');
+                return;
+            }
+            
+            // Intentar eliminar la referencia
+            $resultado = $this->referenciaModel->eliminar($id);
+            
+            if ($resultado) {
+                $this->responderJSON(true, 'Referencia eliminada con éxito');
+            } else {
+                $this->responderJSON(false, 'Error al eliminar la referencia');
+            }
+        } else {
+            $this->responderJSON(false, 'Método no permitido');
         }
     }
     
@@ -557,6 +764,9 @@ class UserController {
         
         // Obtener solo los estudiantes asociados a titulares creados por el usuario actual
         $estudiantes = $this->estudianteModel->obtenerPorUsuario($usuario_id);
+        if (!$estudiantes) {
+            $estudiantes = []; // Asegurarse que sea un array vacío
+        }
         
         // Cargar la vista de estudiantes
         include 'views/usuario/estudiantes.php';
@@ -570,7 +780,7 @@ class UserController {
         $error = false;
         
         // Obtener cursos para el formulario
-        $cursos = $this->cursoModel->obtenerTodos();
+        $cursos = $this->cursoModel->obtenerTodos(); // Usamos obtenerTodos() como fallback si obtenerTodosConHorario no existe
         
         // Obtener ID del usuario actual
         $usuario_id = $this->authController->getUsuarioId();
@@ -599,7 +809,10 @@ class UserController {
                 'edad' => filter_input(INPUT_POST, 'edad', FILTER_VALIDATE_INT),
                 'curso_id' => filter_input(INPUT_POST, 'curso_id', FILTER_VALIDATE_INT),
                 'talla' => filter_input(INPUT_POST, 'talla', FILTER_SANITIZE_STRING),
-                'titular_id' => filter_input(INPUT_POST, 'titular_id', FILTER_VALIDATE_INT)
+                'titular_id' => filter_input(INPUT_POST, 'titular_id', FILTER_VALIDATE_INT),
+                'fecha_nacimiento' => filter_input(INPUT_POST, 'fecha_nacimiento'),
+                'tiene_discapacidad' => filter_input(INPUT_POST, 'tiene_discapacidad', FILTER_SANITIZE_STRING) ?? 'no',
+                'observaciones_discapacidad' => filter_input(INPUT_POST, 'observaciones_discapacidad', FILTER_SANITIZE_STRING)
             ];
             
             // Verificar datos obligatorios
@@ -672,14 +885,17 @@ class UserController {
                 'edad' => filter_input(INPUT_POST, 'edad', FILTER_VALIDATE_INT),
                 'curso_id' => filter_input(INPUT_POST, 'curso_id', FILTER_VALIDATE_INT),
                 'talla' => filter_input(INPUT_POST, 'talla', FILTER_SANITIZE_STRING),
-                'titular_id' => $titular_id
+                'titular_id' => $titular_id,
+                'fecha_nacimiento' => filter_input(INPUT_POST, 'fecha_nacimiento'),
+                'tiene_discapacidad' => filter_input(INPUT_POST, 'tiene_discapacidad', FILTER_SANITIZE_STRING) ?? 'no',
+                'observaciones_discapacidad' => filter_input(INPUT_POST, 'observaciones_discapacidad', FILTER_SANITIZE_STRING)
             ];
             
             // Verificar datos obligatorios
             if (!$datos_estudiante['nombres'] || !$datos_estudiante['apellidos'] || 
                 !$datos_estudiante['edad'] || !$datos_estudiante['curso_id']) {
                 // Redirigir con error
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1');
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1&mensaje=' . urlencode('Por favor, completa todos los campos obligatorios.'));
                 exit;
             }
             
@@ -688,9 +904,9 @@ class UserController {
             
             // Redirigir a la vista de edición del titular
             if ($resultado) {
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&success=1');
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&success=1&mensaje=' . urlencode('Estudiante creado con éxito.'));
             } else {
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1');
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular_id . '&error=1&mensaje=' . urlencode('Error al crear el estudiante. Verifica que la cédula no esté en uso.'));
             }
             exit;
         } else {
@@ -708,7 +924,7 @@ class UserController {
         $error = false;
         
         // Obtener ID del estudiante
-        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        $id = isset($_POST['id']) ? filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT) : filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
         
         if (!$id) {
             header('Location: index.php?controller=usuario&action=listarEstudiantes');
@@ -733,12 +949,6 @@ class UserController {
             exit;
         }
         
-        // Obtener cursos para el formulario
-        $cursos = $this->cursoModel->obtenerTodos();
-        
-        // Obtener titulares para el formulario (solo los del usuario actual)
-        $titulares = $this->titularModel->obtenerPorUsuario($usuario_id);
-        
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Obtener datos del estudiante
             $datos_estudiante = [
@@ -748,7 +958,10 @@ class UserController {
                 'edad' => filter_input(INPUT_POST, 'edad', FILTER_VALIDATE_INT),
                 'curso_id' => filter_input(INPUT_POST, 'curso_id', FILTER_VALIDATE_INT),
                 'talla' => filter_input(INPUT_POST, 'talla', FILTER_SANITIZE_STRING),
-                'titular_id' => filter_input(INPUT_POST, 'titular_id', FILTER_VALIDATE_INT)
+                'titular_id' => filter_input(INPUT_POST, 'titular_id', FILTER_VALIDATE_INT),
+                'fecha_nacimiento' => filter_input(INPUT_POST, 'fecha_nacimiento'),
+                'tiene_discapacidad' => filter_input(INPUT_POST, 'tiene_discapacidad', FILTER_SANITIZE_STRING) ?? 'no',
+                'observaciones_discapacidad' => filter_input(INPUT_POST, 'observaciones_discapacidad', FILTER_SANITIZE_STRING)
             ];
             
             // Verificar datos obligatorios
@@ -770,8 +983,8 @@ class UserController {
                     if ($resultado) {
                         $mensaje = 'Estudiante actualizado con éxito.';
                         
-                        // Redirigir a la lista de estudiantes
-                        header('Location: index.php?controller=usuario&action=listarEstudiantes&success=1');
+                        // Redireccionar a la vista de titular
+                        header('Location: index.php?controller=usuario&action=editarTitular&id=' . $datos_estudiante['titular_id'] . '&success=1&mensaje=' . urlencode('Estudiante actualizado correctamente.'));
                         exit;
                     } else {
                         $error = true;
@@ -779,70 +992,15 @@ class UserController {
                     }
                 }
             }
-        }
-        
-        // Cargar vista de edición
-        include 'views/usuario/editar_estudiante.php';
-    }
-    
-    /**
-     * Acción para procesar la actualización de un titular existente
-     */
-    public function actualizarTitular() {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            // Obtener ID del titular
-            $id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
             
-            if (!$id) {
-                header('Location: index.php?controller=usuario&action=listarTitulares');
+            // Si hay errores, redirigir con el mensaje de error
+            if ($error) {
+                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular['id'] . '&error=1&mensaje=' . urlencode($mensaje));
                 exit;
             }
-            
-            // Verificar que el titular pertenece al usuario actual
-            $usuario_id = $this->authController->getUsuarioId();
-            $titular = $this->titularModel->obtenerPorId($id);
-            
-            if (!$titular || $titular['created_by'] != $usuario_id) {
-                // Si no tiene permiso, redirigir
-                header('Location: index.php?controller=usuario&action=listarTitulares');
-                exit;
-            }
-            
-            // Obtener datos del titular
-            $datos_titular = [
-                'cedula' => filter_input(INPUT_POST, 'cedula', FILTER_SANITIZE_STRING),
-                'nombres' => filter_input(INPUT_POST, 'nombres', FILTER_SANITIZE_STRING),
-                'apellidos' => filter_input(INPUT_POST, 'apellidos', FILTER_SANITIZE_STRING),
-                'direccion' => filter_input(INPUT_POST, 'direccion', FILTER_SANITIZE_STRING),
-                'email' => filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL),
-                'empresa' => filter_input(INPUT_POST, 'empresa', FILTER_SANITIZE_STRING),
-                'celular' => filter_input(INPUT_POST, 'celular', FILTER_SANITIZE_STRING),
-                'telefono_casa' => filter_input(INPUT_POST, 'telefono_casa', FILTER_SANITIZE_STRING),
-                'cargo' => filter_input(INPUT_POST, 'cargo', FILTER_SANITIZE_STRING),
-                'telefono_trabajo' => filter_input(INPUT_POST, 'telefono_trabajo', FILTER_SANITIZE_STRING)
-            ];
-            
-            // Verificar datos obligatorios del titular
-            if (!$datos_titular['cedula'] || !$datos_titular['nombres'] || !$datos_titular['apellidos'] || !$datos_titular['direccion']) {
-                // Redirigir con error
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $id . '&error=1');
-                exit;
-            }
-            
-            // Actualizar el titular
-            $resultado = $this->titularModel->actualizar($id, $datos_titular);
-            
-            if ($resultado) {
-                // Redirigir a la lista de titulares con mensaje de éxito
-                header('Location: index.php?controller=usuario&action=listarTitulares&success=1');
-            } else {
-                // Redirigir con error
-                header('Location: index.php?controller=usuario&action=editarTitular&id=' . $id . '&error=1');
-            }
-            exit;
         } else {
-            // Redirigir a la lista de titulares si no es POST
-            header('Location: index.php?controller=usuario&action=listarTitulares');
+            // Si es una solicitud GET, redirigir a la vista de editar titular
+            header('Location: index.php?controller=usuario&action=editarTitular&id=' . $titular['id'] . '&edit_estudiante=' . $id);
             exit;
         }
     }
@@ -887,6 +1045,40 @@ class UserController {
         } else {
             $this->responderJSON(false, 'Método no permitido');
         }
+    }
+    
+    /**
+     * Método para obtener la información de un estudiante (para AJAX)
+     */
+    public function getEstudianteInfo() {
+        // Obtener ID del estudiante
+        $id = filter_input(INPUT_GET, 'id', FILTER_VALIDATE_INT);
+        
+        if (!$id) {
+            $this->responderJSON(false, 'ID de estudiante inválido');
+            return;
+        }
+        
+        // Obtener datos del estudiante
+        $estudiante = $this->estudianteModel->obtenerPorId($id);
+        
+        if (!$estudiante) {
+            $this->responderJSON(false, 'Estudiante no encontrado');
+            return;
+        }
+        
+        // Verificar que el estudiante está asociado a un titular del usuario actual
+        $usuario_id = $this->authController->getUsuarioId();
+        $titular = $this->titularModel->obtenerPorId($estudiante['titular_id']);
+        
+        if (!$titular || $titular['created_by'] != $usuario_id) {
+            $this->responderJSON(false, 'No tienes permiso para ver este estudiante');
+            return;
+        }
+        
+        // Enviar los datos del estudiante con mensaje de depuración
+        error_log("Enviando datos del estudiante: " . json_encode($estudiante));
+        $this->responderJSON(true, 'Datos obtenidos con éxito', ['estudiante' => $estudiante]);
     }
     
     /**

@@ -236,6 +236,91 @@
             color: var(--success-color);
             border: 1px solid rgba(76, 175, 80, 0.3);
         }
+        
+        /* Nuevos estilos para la selección de días de la semana */
+        .days-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .day-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .day-label {
+            display: inline-block;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 90px;
+        }
+        
+        .day-checkbox:checked + .day-label {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .day-checkbox:focus + .day-label {
+            box-shadow: 0 0 0 2px rgba(0, 119, 194, 0.2);
+        }
+        
+        .day-wrapper {
+            position: relative;
+        }
+        
+        .day-label:hover {
+            background-color: rgba(0, 119, 194, 0.1);
+        }
+        
+        .schedule-header {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .schedule-header i {
+            margin-right: 8px;
+        }
+        
+        .schedule-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .schedule-fields {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .schedule-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .days-selection {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -266,9 +351,9 @@
                 <i class="fas fa-user-tag"></i>
                 <span>Roles</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=verPerfil'">
-                <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=informeFacturacion'">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Facturación</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
                 <i class="fas fa-chart-bar"></i>
@@ -305,6 +390,60 @@
                 <div class="form-group">
                     <label for="descripcion" class="form-label">Descripción</label>
                     <textarea class="form-control" id="descripcion" name="descripcion" rows="4"><?php echo htmlspecialchars($curso['descripcion']); ?></textarea>
+                </div>
+                
+                <!-- Sección de Horario con mejor diseño -->
+                <div class="schedule-section">
+                    <div class="schedule-header">
+                        <i class="fas fa-calendar-alt"></i> Programación del Curso
+                    </div>
+                    
+                    <div class="schedule-fields">
+                        <div class="form-group">
+                            <label for="fecha_inicio">Fecha de Inicio</label>
+                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="<?php echo $curso['fecha_inicio'] ?? ''; ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fecha_fin">Fecha de Finalización</label>
+                            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="<?php echo $curso['fecha_fin'] ?? ''; ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hora_inicio">Hora de Inicio</label>
+                            <input type="time" class="form-control" id="hora_inicio" name="hora_inicio" value="<?php echo $curso['hora_inicio'] ?? ''; ?>">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hora_fin">Hora de Finalización</label>
+                            <input type="time" class="form-control" id="hora_fin" name="hora_fin" value="<?php echo $curso['hora_fin'] ?? ''; ?>">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Días de la Semana</label>
+                        <div class="days-selection">
+                            <?php 
+                            $dias_semana = json_decode($curso['dias_semana'] ?? '[]', true);
+                            $dias = [
+                                'lunes' => 'Lunes',
+                                'martes' => 'Martes',
+                                'miercoles' => 'Miércoles',
+                                'jueves' => 'Jueves', 
+                                'viernes' => 'Viernes',
+                                'sabado' => 'Sábado',
+                                'domingo' => 'Domingo'
+                            ];
+                            
+                            foreach ($dias as $valor => $nombre): 
+                            ?>
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="<?php echo $valor; ?>" class="day-checkbox" name="dias_semana[]" value="<?php echo $valor; ?>" <?php echo in_array($valor, $dias_semana) ? 'checked' : ''; ?>>
+                                <label for="<?php echo $valor; ?>" class="day-label"><?php echo $nombre; ?></label>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-group">

@@ -370,7 +370,7 @@
             </div>
         </div>
         <ul class="menu">
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=dashboard'">
+            <li class="menu-item active" onclick="location.href='index.php?controller=superadmin&action=dashboard'">
                 <i class="fas fa-tachometer-alt"></i>
                 <span>Dashboard</span>
             </li>
@@ -386,13 +386,9 @@
                 <i class="fas fa-user-tag"></i>
                 <span>Roles</span>
             </li>
-            <li class="menu-item active" onclick="location.href='index.php?controller=finanzas&action=informeFacturacion'">
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=informeFacturacion'">
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>Facturación</span>
-            </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=perfil'">
-                <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
                 <i class="fas fa-chart-bar"></i>

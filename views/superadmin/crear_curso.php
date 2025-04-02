@@ -236,6 +236,91 @@
             color: var(--success-color);
             border: 1px solid rgba(76, 175, 80, 0.3);
         }
+
+        /* Nuevos estilos para la selección de días de la semana */
+        .days-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .day-checkbox {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .day-label {
+            display: inline-block;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            min-width: 90px;
+        }
+        
+        .day-checkbox:checked + .day-label {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .day-checkbox:focus + .day-label {
+            box-shadow: 0 0 0 2px rgba(0, 119, 194, 0.2);
+        }
+        
+        .day-wrapper {
+            position: relative;
+        }
+        
+        .day-label:hover {
+            background-color: rgba(0, 119, 194, 0.1);
+        }
+        
+        .schedule-header {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+        
+        .schedule-header i {
+            margin-right: 8px;
+        }
+        
+        .schedule-section {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .schedule-fields {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .schedule-fields {
+                grid-template-columns: 1fr;
+            }
+            
+            .days-selection {
+                justify-content: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -266,9 +351,9 @@
                 <i class="fas fa-user-tag"></i>
                 <span>Roles</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=verPerfil'">
-                <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=informeFacturacion'">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Facturación</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
                 <i class="fas fa-chart-bar"></i>
@@ -280,6 +365,7 @@
             <span>Cerrar Sesión</span>
         </div>
     </div>
+
 
     <!-- Main Content -->
     <div class="main-content">
@@ -298,13 +384,76 @@
 
             <form method="POST" action="index.php?controller=superadmin&action=crearCurso">
                 <div class="form-group">
-                    <label for="nombre" class="form-label">Nombre del Curso *</label>
+                    <label for="nombre">Nombre del Curso *</label>
                     <input type="text" class="form-control" id="nombre" name="nombre" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="descripcion" class="form-label">Descripción</label>
-                    <textarea class="form-control" id="descripcion" name="descripcion" rows="4"></textarea>
+                    <label for="descripcion">Descripción</label>
+                    <textarea class="form-control" id="descripcion" name="descripcion" rows="3"></textarea>
+                </div>
+                
+                <!-- Sección de Horario con mejor diseño -->
+                <div class="schedule-section">
+                    <div class="schedule-header">
+                        <i class="fas fa-calendar-alt"></i> Programación del Curso
+                    </div>
+                    
+                    <div class="schedule-fields">
+                        <div class="form-group">
+                            <label for="fecha_inicio">Fecha de Inicio</label>
+                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="fecha_fin">Fecha de Finalización</label>
+                            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hora_inicio">Hora de Inicio</label>
+                            <input type="time" class="form-control" id="hora_inicio" name="hora_inicio">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="hora_fin">Hora de Finalización</label>
+                            <input type="time" class="form-control" id="hora_fin" name="hora_fin">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Días de la Semana</label>
+                        <div class="days-selection">
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="lunes" class="day-checkbox" name="dias_semana[]" value="lunes">
+                                <label for="lunes" class="day-label">Lunes</label>
+                            </div>
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="martes" class="day-checkbox" name="dias_semana[]" value="martes">
+                                <label for="martes" class="day-label">Martes</label>
+                            </div>
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="miercoles" class="day-checkbox" name="dias_semana[]" value="miercoles">
+                                <label for="miercoles" class="day-label">Miércoles</label>
+                            </div>
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="jueves" class="day-checkbox" name="dias_semana[]" value="jueves">
+                                <label for="jueves" class="day-label">Jueves</label>
+                            </div>
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="viernes" class="day-checkbox" name="dias_semana[]" value="viernes">
+                                <label for="viernes" class="day-label">Viernes</label>
+                            </div>
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="sabado" class="day-checkbox" name="dias_semana[]" value="sabado">
+                                <label for="sabado" class="day-label">Sábado</label>
+                            </div>
+                            <div class="day-wrapper">
+                                <input type="checkbox" id="domingo" class="day-checkbox" name="dias_semana[]" value="domingo">
+                                <label for="domingo" class="day-label">Domingo</label>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="form-buttons">

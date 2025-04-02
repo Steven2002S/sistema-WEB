@@ -351,6 +351,128 @@
             border-top: 1px solid var(--border-color);
             margin: 30px 0;
         }
+
+        /* Nuevos estilos para selector de cursos */
+        .curso-selector {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .curso-search {
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .curso-cards {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .curso-card {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .curso-card:hover {
+            background-color: rgba(0, 119, 194, 0.05);
+            border-color: var(--primary-color);
+        }
+
+        .curso-card.selected {
+            background-color: rgba(0, 119, 194, 0.1);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(0, 119, 194, 0.2);
+        }
+
+        .curso-name {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--primary-color);
+        }
+
+        .curso-dates, .curso-time {
+            font-size: 13px;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .curso-days {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .day-badge {
+            font-size: 11px;
+            padding: 2px 6px;
+            background-color: rgba(0, 119, 194, 0.1);
+            color: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        /* Estilos para radio buttons de discapacidad */
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            margin-top: 5px;
+        }
+
+        .radio-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .radio-label input {
+            margin-right: 5px;
+        }
+
+        /* Estilos para información de curso en select */
+        .form-select option {
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        /* Estilos para los campos adicionales */
+        .fecha-nacimiento-field {
+            display: flex;
+            align-items: center;
+        }
+
+        .fecha-nacimiento-field i {
+            color: var(--primary-color);
+            margin-right: 8px;
+        }
+
+        .discapacidad-section {
+            background-color: rgba(249, 249, 249, 0.7);
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 5px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .discapacidad-header {
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .discapacidad-header i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -391,6 +513,10 @@
             <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=listarEstudiantes'">
                 <i class="fas fa-user-graduate"></i>
                 <span>Estudiantes</span>
+            </li>
+            <li class="menu-item " onclick="location.href='index.php?controller=finanzas&action=dashboard'">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Finanzas</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=perfil'">
                 <i class="fas fa-cog"></i>
@@ -490,15 +616,15 @@
                 
                 <div id="estudiantes-container">
                     <!-- Primer estudiante (siempre visible) -->
-                    <div class="estudiante-container">
+                    <div class="estudiante-container" id="estudiante-0">
                         <div class="estudiante-header">
                             <h3 class="estudiante-title"><i class="fas fa-user-graduate"></i> Estudiante 1</h3>
                         </div>
                         
                         <div class="form-grid">
                             <div class="form-group">
-                                <label class="form-label" for="estudiante_cedula_0">Cédula</label>
-                                <input type="text" id="estudiante_cedula_0" name="estudiante_cedula[]" class="form-input">
+                                <label class="form-label" for="estudiante_cedula_0">Cédula<span class="form-required">*</span></label>
+                                <input type="text" id="estudiante_cedula_0" name="estudiante_cedula[]" class="form-input" required>
                                 <div class="form-error" id="estudiante_cedula_0-error">Por favor, ingrese un número de cédula válido.</div>
                             </div>
                             
@@ -521,12 +647,43 @@
                             </div>
                             
                             <div class="form-group">
+                                <label class="form-label" for="estudiante_fecha_nacimiento_0">Fecha de Nacimiento</label>
+                                <div class="fecha-nacimiento-field">
+                                    <i class="fas fa-calendar-alt"></i>
+                                    <input type="date" id="estudiante_fecha_nacimiento_0" name="estudiante_fecha_nacimiento[]" class="form-input">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
                                 <label class="form-label" for="estudiante_curso_id_0">Curso<span class="form-required">*</span></label>
                                 <select id="estudiante_curso_id_0" name="estudiante_curso_id[]" class="form-select" required>
                                     <option value="">Seleccione un curso...</option>
                                     <?php foreach ($cursos as $curso): ?>
-                                        <?php if ($curso['estado'] === 'activo'): ?>
-                                        <option value="<?php echo $curso['id']; ?>"><?php echo htmlspecialchars($curso['nombre']); ?></option>
+                                        <?php if ($curso['estado'] === 'activo'): 
+                                            // Preparar información del horario
+                                            $infoHorario = "";
+                                            if (!empty($curso['fecha_inicio']) && !empty($curso['fecha_fin'])) {
+                                                $infoHorario .= " | " . date('d/m/Y', strtotime($curso['fecha_inicio'])) . " al " . date('d/m/Y', strtotime($curso['fecha_fin']));
+                                            }
+                                            if (!empty($curso['hora_inicio']) && !empty($curso['hora_fin'])) {
+                                                $infoHorario .= " | " . date('H:i', strtotime($curso['hora_inicio'])) . " a " . date('H:i', strtotime($curso['hora_fin']));
+                                            }
+                                            
+                                            // Preparar información de días
+                                            $diasSemana = "";
+                                            if (!empty($curso['dias_semana'])) {
+                                                $diasArray = json_decode($curso['dias_semana'], true);
+                                                if (is_array($diasArray) && !empty($diasArray)) {
+                                                    $diasCortos = array_map(function($dia) {
+                                                        return ucfirst(substr($dia, 0, 3));
+                                                    }, $diasArray);
+                                                    $diasSemana = " | " . implode(", ", $diasCortos);
+                                                }
+                                            }
+                                        ?>
+                                        <option value="<?php echo $curso['id']; ?>">
+                                            <?php echo htmlspecialchars($curso['nombre']) . $infoHorario . $diasSemana; ?>
+                                        </option>
                                         <?php endif; ?>
                                     <?php endforeach; ?>
                                 </select>
@@ -536,6 +693,28 @@
                             <div class="form-group">
                                 <label class="form-label" for="estudiante_talla_0">Talla</label>
                                 <input type="text" id="estudiante_talla_0" name="estudiante_talla[]" class="form-input">
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label">¿Tiene discapacidad?</label>
+                                <div class="radio-group">
+                                    <label class="radio-label">
+                                        <input type="radio" name="estudiante_tiene_discapacidad[0]" value="no" checked onchange="toggleDiscapacidad(0, 'no')"> No
+                                    </label>
+                                    <label class="radio-label">
+                                        <input type="radio" name="estudiante_tiene_discapacidad[0]" value="si" onchange="toggleDiscapacidad(0, 'si')"> Sí
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group" id="discapacidad_container_0" style="display: none;">
+                                <div class="discapacidad-section">
+                                    <div class="discapacidad-header">
+                                        <i class="fas fa-info-circle"></i>
+                                        Observaciones sobre discapacidad
+                                    </div>
+                                    <textarea id="estudiante_observaciones_discapacidad_0" name="estudiante_observaciones_discapacidad[]" class="form-textarea" placeholder="Describa el tipo de discapacidad y cualquier información relevante..."></textarea>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -554,18 +733,18 @@
                 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label class="form-label" for="referencia_nombres">Nombres</label>
-                        <input type="text" id="referencia_nombres" name="referencia_nombres" class="form-input">
+                        <label class="form-label" for="referencia_nombres">Nombres<span class="form-required">*</span></label>
+                        <input type="text" id="referencia_nombres" name="referencia_nombres" class="form-input" required>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label" for="referencia_apellidos">Apellidos</label>
-                        <input type="text" id="referencia_apellidos" name="referencia_apellidos" class="form-input">
+                        <input type="text" id="referencia_apellidos" name="referencia_apellidos" class="form-input" required>
                     </div>
                     
                     <div class="form-group">
                         <label class="form-label" for="referencia_direccion">Dirección</label>
-                        <textarea id="referencia_direccion" name="referencia_direccion" class="form-textarea"></textarea>
+                        <textarea id="referencia_direccion" name="referencia_direccion" class="form-textarea" require></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -593,7 +772,6 @@
                         <label class="form-label" for="referencia_cargo">Cargo</label>
                         <input type="text" id="referencia_cargo" name="referencia_cargo" class="form-input">
                     </div>
-                    
                     <div class="form-group">
                         <label class="form-label" for="referencia_telefono_trabajo">Teléfono Trabajo</label>
                         <input type="text" id="referencia_telefono_trabajo" name="referencia_telefono_trabajo" class="form-input">
@@ -658,12 +836,43 @@
                         </div>
                         
                         <div class="form-group">
+                            <label class="form-label" for="estudiante_fecha_nacimiento_${estudianteCount}">Fecha de Nacimiento</label>
+                            <div class="fecha-nacimiento-field">
+                                <i class="fas fa-calendar-alt"></i>
+                                <input type="date" id="estudiante_fecha_nacimiento_${estudianteCount}" name="estudiante_fecha_nacimiento[]" class="form-input">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
                             <label class="form-label" for="estudiante_curso_id_${estudianteCount}">Curso<span class="form-required">*</span></label>
                             <select id="estudiante_curso_id_${estudianteCount}" name="estudiante_curso_id[]" class="form-select" required>
                                 <option value="">Seleccione un curso...</option>
                                 <?php foreach ($cursos as $curso): ?>
-                                    <?php if ($curso['estado'] === 'activo'): ?>
-                                    <option value="<?php echo $curso['id']; ?>"><?php echo htmlspecialchars($curso['nombre']); ?></option>
+                                    <?php if ($curso['estado'] === 'activo'): 
+                                        // Preparar información del horario
+                                        $infoHorario = "";
+                                        if (!empty($curso['fecha_inicio']) && !empty($curso['fecha_fin'])) {
+                                            $infoHorario .= " | " . date('d/m/Y', strtotime($curso['fecha_inicio'])) . " al " . date('d/m/Y', strtotime($curso['fecha_fin']));
+                                        }
+                                        if (!empty($curso['hora_inicio']) && !empty($curso['hora_fin'])) {
+                                            $infoHorario .= " | " . date('H:i', strtotime($curso['hora_inicio'])) . " a " . date('H:i', strtotime($curso['hora_fin']));
+                                        }
+                                        
+                                        // Preparar información de días
+                                        $diasSemana = "";
+                                        if (!empty($curso['dias_semana'])) {
+                                            $diasArray = json_decode($curso['dias_semana'], true);
+                                            if (is_array($diasArray) && !empty($diasArray)) {
+                                                $diasCortos = array_map(function($dia) {
+                                                    return ucfirst(substr($dia, 0, 3));
+                                                }, $diasArray);
+                                                $diasSemana = " | " . implode(", ", $diasCortos);
+                                            }
+                                        }
+                                    ?>
+                                    <option value="<?php echo $curso['id']; ?>">
+                                        <?php echo htmlspecialchars($curso['nombre']) . $infoHorario . $diasSemana; ?>
+                                    </option>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </select>
@@ -674,10 +883,41 @@
                             <label class="form-label" for="estudiante_talla_${estudianteCount}">Talla</label>
                             <input type="text" id="estudiante_talla_${estudianteCount}" name="estudiante_talla[]" class="form-input">
                         </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">¿Tiene discapacidad?</label>
+                            <div class="radio-group">
+                                <label class="radio-label">
+                                    <input type="radio" name="estudiante_tiene_discapacidad[${estudianteCount}]" value="no" checked onchange="toggleDiscapacidad(${estudianteCount}, 'no')"> No
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="estudiante_tiene_discapacidad[${estudianteCount}]" value="si" onchange="toggleDiscapacidad(${estudianteCount}, 'si')"> Sí
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group" id="discapacidad_container_${estudianteCount}" style="display: none;">
+                            <div class="discapacidad-section">
+                                <div class="discapacidad-header">
+                                    <i class="fas fa-info-circle"></i>
+                                    Observaciones sobre discapacidad
+                                </div>
+                                <textarea id="estudiante_observaciones_discapacidad_${estudianteCount}" name="estudiante_observaciones_discapacidad[]" class="form-textarea" placeholder="Describa el tipo de discapacidad y cualquier información relevante..."></textarea>
+                            </div>
+                        </div>
                     </div>
                 `;
                 
                 container.appendChild(newEstudiante);
+                
+                // Configurar los radio buttons del nuevo estudiante
+                const radioButtons = document.querySelectorAll(`input[name="estudiante_tiene_discapacidad[${estudianteCount}]"]`);
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', function() {
+                        toggleDiscapacidad(estudianteCount, this.value);
+                    });
+                });
+                
                 estudianteCount++;
                 
                 // Si ya hay 10 estudiantes, ocultar el botón de agregar
@@ -695,6 +935,78 @@
             
             // Mostrar el botón de agregar nuevamente
             document.getElementById('btnAddEstudiante').style.display = 'inline-flex';
+        }
+
+        // Función para mostrar/ocultar el campo de observaciones de discapacidad
+        function toggleDiscapacidad(id, valor) {
+            const container = document.getElementById(`discapacidad_container_${id}`);
+            if (valor === 'si') {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+                // Limpiar el campo cuando se deselecciona
+                document.getElementById(`estudiante_observaciones_discapacidad_${id}`).value = '';
+            }
+        }
+        
+        // Inicializar el primer estudiante
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar los radio buttons del primer estudiante
+            const radioButtons = document.querySelectorAll('input[name="estudiante_tiene_discapacidad[0]"]');
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function() {
+                    toggleDiscapacidad(0, this.value);
+                });
+            });
+        });
+        
+        // Función para reorganizar los índices de los estudiantes
+        function reorganizarIndices() {
+            // Obtener todos los contenedores de estudiantes
+            const estudiantes = document.querySelectorAll('.estudiante-container');
+            let nuevoIndice = 0;
+            
+            // Para cada estudiante existente, reasignar los índices
+            estudiantes.forEach((estudiante, index) => {
+                // Verificar si el estudiante tiene datos
+                const nombres = estudiante.querySelector('input[name^="estudiante_nombres"]');
+                const apellidos = estudiante.querySelector('input[name^="estudiante_apellidos"]');
+                const edad = estudiante.querySelector('input[name^="estudiante_edad"]');
+                
+                if (nombres && nombres.value.trim() && apellidos && apellidos.value.trim() && edad && edad.value) {
+                    // Este estudiante tiene datos, actualizar sus índices
+                    const radioButtons = estudiante.querySelectorAll('input[type="radio"]');
+                    
+                    // Actualizar el nombre de los radio buttons
+                    radioButtons.forEach(radio => {
+                        // Solo actualizar si el nombre tiene el formato "estudiante_tiene_discapacidad[X]"
+                        const match = radio.name.match(/estudiante_tiene_discapacidad\[\d+\]/);
+                        if (match) {
+                            radio.name = `estudiante_tiene_discapacidad[${nuevoIndice}]`;
+                        }
+                    });
+                    
+                    nuevoIndice++;
+                } else {
+                    // Este estudiante no tiene datos válidos, removerlo del envío
+                    if (nombres) nombres.disabled = true;
+                    if (apellidos) apellidos.disabled = true;
+                    if (edad) edad.disabled = true;
+                    const curso = estudiante.querySelector('select[name^="estudiante_curso_id"]');
+                    if (curso) curso.disabled = true;
+                    const talla = estudiante.querySelector('input[name^="estudiante_talla"]');
+                    if (talla) talla.disabled = true;
+                    const fechaNacimiento = estudiante.querySelector('input[name^="estudiante_fecha_nacimiento"]');
+                    if (fechaNacimiento) fechaNacimiento.disabled = true;
+                    const observaciones = estudiante.querySelector('textarea[name^="estudiante_observaciones_discapacidad"]');
+                    if (observaciones) observaciones.disabled = true;
+                    
+                    // Deshabilitar radio buttons
+                    radioButtons.forEach(radio => {
+                        radio.disabled = true;
+                    });
+                }
+            });
         }
         
         // Validación del formulario
@@ -719,8 +1031,8 @@
                 hideError(nombres, 'nombres-error');
             }
             
-// Validar apellidos del titular
-const apellidos = document.getElementById('apellidos');
+            // Validar apellidos del titular
+            const apellidos = document.getElementById('apellidos');
             if (!apellidos.value.trim()) {
                 showError(apellidos, 'apellidos-error', 'Por favor, ingrese los apellidos.');
                 hasErrors = true;
@@ -755,9 +1067,96 @@ const apellidos = document.getElementById('apellidos');
                 hideError(refEmail, 'referencia_email-error');
             }
             
+            // Validar campos de estudiantes
+            for (let i = 0; i < estudianteCount; i++) {
+                const estudianteElement = document.getElementById(`estudiante-${i}`);
+                // Solo validar si el elemento existe (podría haber sido eliminado)
+                if (estudianteElement) {
+                    // Validar nombres del estudiante
+                    const estudiante_nombres = document.getElementById(`estudiante_nombres_${i}`);
+                    if (estudiante_nombres && (!estudiante_nombres.value.trim())) {
+                        showError(estudiante_nombres, `estudiante_nombres_${i}-error`, 'Por favor, ingrese los nombres.');
+                        hasErrors = true;
+                    } else if (estudiante_nombres) {
+                        hideError(estudiante_nombres, `estudiante_nombres_${i}-error`);
+                    }
+                    
+                    // Validar apellidos del estudiante
+                    const estudiante_apellidos = document.getElementById(`estudiante_apellidos_${i}`);
+                    if (estudiante_apellidos && (!estudiante_apellidos.value.trim())) {
+                        showError(estudiante_apellidos, `estudiante_apellidos_${i}-error`, 'Por favor, ingrese los apellidos.');
+                        hasErrors = true;
+                    } else if (estudiante_apellidos) {
+                        hideError(estudiante_apellidos, `estudiante_apellidos_${i}-error`);
+                    }
+                    
+                    // Validar edad del estudiante
+                    const estudiante_edad = document.getElementById(`estudiante_edad_${i}`);
+                    if (estudiante_edad && (!estudiante_edad.value || estudiante_edad.value < 1 || estudiante_edad.value > 100)) {
+                        showError(estudiante_edad, `estudiante_edad_${i}-error`, 'Por favor, ingrese una edad válida (entre 1 y 100).');
+                        hasErrors = true;
+                    } else if (estudiante_edad) {
+                        hideError(estudiante_edad, `estudiante_edad_${i}-error`);
+                    }
+                    
+                    // Validar curso del estudiante
+                    const estudiante_curso_id = document.getElementById(`estudiante_curso_id_${i}`);
+                    if (estudiante_curso_id && !estudiante_curso_id.value) {
+                        showError(estudiante_curso_id, `estudiante_curso_id_${i}-error`, 'Por favor, seleccione un curso.');
+                        hasErrors = true;
+                    } else if (estudiante_curso_id) {
+                        hideError(estudiante_curso_id, `estudiante_curso_id_${i}-error`);
+                    }
+                }
+            }
+            
+            // Verificar si hay al menos un estudiante válido
+            let estudiantesValidos = false;
+            for (let i = 0; i < estudianteCount; i++) {
+                const estudiante_nombres = document.getElementById(`estudiante_nombres_${i}`);
+                const estudiante_apellidos = document.getElementById(`estudiante_apellidos_${i}`);
+                const estudiante_edad = document.getElementById(`estudiante_edad_${i}`);
+                const estudiante_curso_id = document.getElementById(`estudiante_curso_id_${i}`);
+                
+                if (estudiante_nombres && estudiante_apellidos && estudiante_edad && estudiante_curso_id) {
+                    if (estudiante_nombres.value.trim() && estudiante_apellidos.value.trim() && 
+                        estudiante_edad.value && estudiante_edad.value > 0 && estudiante_edad.value <= 100 && 
+                        estudiante_curso_id.value) {
+                        estudiantesValidos = true;
+                        break;
+                    }
+                }
+            }
+            
+            // Si no hay estudiantes válidos, mostrar error
+            if (!estudiantesValidos) {
+                // Mostrar un mensaje de error en la parte superior del formulario
+                const mainContent = document.querySelector('.main-content');
+                const formHeader = document.querySelector('.header');
+                
+                const errorMessage = document.createElement('div');
+                errorMessage.className = 'alert alert-error';
+                errorMessage.innerHTML = '<i class="fas fa-exclamation-circle"></i> Debe completar la información de al menos un estudiante.';
+                
+                // Insertar después del header
+                if (formHeader && formHeader.nextSibling) {
+                    mainContent.insertBefore(errorMessage, formHeader.nextSibling);
+                } else {
+                    mainContent.appendChild(errorMessage);
+                }
+                
+                hasErrors = true;
+                
+                // Desplazar la página hacia arriba para mostrar el mensaje
+                window.scrollTo(0, 0);
+            }
+            
             // Si hay errores, detener el envío del formulario
             if (hasErrors) {
                 e.preventDefault();
+            } else {
+                // Si todo está bien, reorganizar los índices para enviar correctamente
+                reorganizarIndices();
             }
         });
         

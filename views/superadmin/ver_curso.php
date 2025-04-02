@@ -298,6 +298,176 @@
             gap: 10px;
             margin-top: 20px;
         }
+
+        /* Nuevos estilos para el horario */
+        .schedule-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .schedule-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 8px;
+            height: 100%;
+            background: var(--primary-color);
+        }
+
+        .schedule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+            padding-bottom: 15px;
+        }
+
+        .schedule-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .schedule-title i {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+
+        .schedule-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-download {
+            background-color: #4361ee;
+            color: white;
+            border: none;
+        }
+
+        .btn-download:hover {
+            background-color: #3a56d4;
+            transform: translateY(-2px);
+        }
+
+        .btn-print {
+            background-color: #4cc9f0;
+            color: white;
+            border: none;
+        }
+
+        .btn-print:hover {
+            background-color: #33b8e0;
+            transform: translateY(-2px);
+        }
+
+        .schedule-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .schedule-info {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-item i {
+            font-size: 20px;
+            color: var(--primary-color);
+            width: 25px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+            min-width: 100px;
+        }
+
+        .info-value {
+            font-weight: 500;
+        }
+
+        .days-container {
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .days-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        .days-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .day-badge {
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-weight: 600;
+            font-size: 14px;
+            background-color: rgba(0, 119, 194, 0.1);
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .day-badge i {
+            font-size: 16px;
+        }
+
+        /* Para la impresión del horario */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #printable-schedule, #printable-schedule * {
+                visibility: visible;
+            }
+            #printable-schedule {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+            }
+            .schedule-actions {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
@@ -328,9 +498,9 @@
                 <i class="fas fa-user-tag"></i>
                 <span>Roles</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=verPerfil'">
-                <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=informeFacturacion'">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Facturación</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
                 <i class="fas fa-chart-bar"></i>
@@ -392,6 +562,114 @@
                 <div class="detail-label">Fecha de Creación:</div>
                 <div class="detail-value"><?php echo date('d/m/Y H:i', strtotime($curso['created_at'])); ?></div>
             </div>
+
+            <!-- Nuevo Bloque de Horario del Curso -->
+            <?php if (!empty($curso['fecha_inicio']) || !empty($curso['hora_inicio']) || !empty($curso['dias_semana'])): ?>
+            <div class="schedule-card" id="printable-schedule">
+                <div class="schedule-header">
+                    <div class="schedule-title">
+                        <i class="fas fa-calendar-alt"></i> Horario del Curso
+                    </div>
+                    <div class="schedule-actions">
+                        <button class="action-btn btn-download" onclick="descargarHorario()">
+                            <i class="fas fa-download"></i> Descargar
+                        </button>
+                        <button class="action-btn btn-print" onclick="imprimirHorario()">
+                            <i class="fas fa-print"></i> Imprimir
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="schedule-grid">
+                    <div class="schedule-info">
+                        <?php if (!empty($curso['fecha_inicio']) && !empty($curso['fecha_fin'])): ?>
+                        <div class="info-item">
+                            <i class="fas fa-calendar"></i>
+                            <span class="info-label">Fechas:</span>
+                            <span class="info-value">
+                                Del <?php echo date('d/m/Y', strtotime($curso['fecha_inicio'])); ?> 
+                                al <?php echo date('d/m/Y', strtotime($curso['fecha_fin'])); ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($curso['hora_inicio']) && !empty($curso['hora_fin'])): ?>
+                        <div class="info-item">
+                            <i class="fas fa-clock"></i>
+                            <span class="info-label">Horario:</span>
+                            <span class="info-value">
+                                De <?php echo date('H:i', strtotime($curso['hora_inicio'])); ?> 
+                                a <?php echo date('H:i', strtotime($curso['hora_fin'])); ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+
+                        <div class="info-item">
+                            <i class="fas fa-hourglass-half"></i>
+                            <span class="info-label">Duración:</span>
+                            <span class="info-value">
+                                <?php 
+                                if (!empty($curso['hora_inicio']) && !empty($curso['hora_fin'])) {
+                                    $inicio = new DateTime($curso['hora_inicio']);
+                                    $fin = new DateTime($curso['hora_fin']);
+                                    $duracion = $inicio->diff($fin);
+                                    echo $duracion->format('%h horas y %i minutos');
+                                } else {
+                                    echo "No especificada";
+                                }
+                                ?>
+                            </span>
+                        </div>
+
+                        <?php if (!empty($curso['fecha_inicio']) && !empty($curso['fecha_fin'])): ?>
+                        <div class="info-item">
+                            <i class="far fa-calendar-plus"></i>
+                            <span class="info-label">Duración Total:</span>
+                            <span class="info-value">
+                                <?php 
+                                $fecha_inicio = new DateTime($curso['fecha_inicio']);
+                                $fecha_fin = new DateTime($curso['fecha_fin']);
+                                $dias_totales = $fecha_inicio->diff($fecha_fin);
+                                echo $dias_totales->format('%a días');
+                                ?>
+                            </span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="days-container">
+                        <div class="days-title">Días de Clase:</div>
+                        <div class="days-grid">
+                            <?php 
+                            $dias_semana = json_decode($curso['dias_semana'] ?? '[]', true);
+                            $dias_mapping = [
+                                'lunes' => ['Lunes', 'calendar-day'],
+                                'martes' => ['Martes', 'calendar-day'],
+                                'miercoles' => ['Miércoles', 'calendar-day'],
+                                'jueves' => ['Jueves', 'calendar-day'],
+                                'viernes' => ['Viernes', 'calendar-day'],
+                                'sabado' => ['Sábado', 'calendar-week'],
+                                'domingo' => ['Domingo', 'calendar-week']
+                            ];
+                            
+                            if (empty($dias_semana)): 
+                            ?>
+                                <div class="day-badge">
+                                    <i class="fas fa-info-circle"></i> No especificados
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($dias_semana as $dia): ?>
+                                <div class="day-badge">
+                                    <i class="fas fa-<?php echo $dias_mapping[$dia][1]; ?>"></i>
+                                    <?php echo $dias_mapping[$dia][0]; ?>
+                                </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <div class="buttons">
                 <button class="btn btn-secondary" onclick="location.href='index.php?controller=superadmin&action=listarCursos'">
@@ -468,6 +746,52 @@
             }
             cerrarModal();
         });
+
+        // Función para imprimir el horario
+        function imprimirHorario() {
+            window.print();
+        }
+
+        // Función para descargar el horario como PDF
+        function descargarHorario() {
+            // Esto normalmente requeriría una librería como html2pdf.js
+            // Para mantenerlo sencillo, usaremos una alternativa
+            alert('Para implementar completamente esta función, necesitarás añadir la librería html2pdf.js al proyecto. Por ahora, puedes usar la función de imprimir y guardar como PDF desde el navegador.');
+            
+            // Simulación del proceso de descarga
+            const downloadPrompt = document.createElement('div');
+            downloadPrompt.style.position = 'fixed';
+            downloadPrompt.style.top = '50%';
+            downloadPrompt.style.left = '50%';
+            downloadPrompt.style.transform = 'translate(-50%, -50%)';
+            downloadPrompt.style.background = 'white';
+            downloadPrompt.style.padding = '20px';
+            downloadPrompt.style.borderRadius = '8px';
+            downloadPrompt.style.boxShadow = '0 4px 20px rgba(0,0,0,0.2)';
+            downloadPrompt.style.zIndex = '9999';
+            downloadPrompt.style.maxWidth = '400px';
+            downloadPrompt.style.textAlign = 'center';
+            
+            downloadPrompt.innerHTML = `
+                <h3 style="margin-bottom:15px;">Descargar Horario</h3>
+                <p style="margin-bottom:20px;">Utiliza el botón de imprimir y selecciona "Guardar como PDF" para descargar el horario.</p>
+                <button id="printNow" style="background:#4361ee; color:white; border:none; padding:10px 20px; border-radius:5px; cursor:pointer; margin-right:10px;">Imprimir ahora</button>
+                <button id="closePrompt" style="background:#e0e0e0; border:none; padding:10px 20px; border-radius:5px; cursor:pointer;">Cerrar</button>
+            `;
+            
+            document.body.appendChild(downloadPrompt);
+            
+            document.getElementById('printNow').addEventListener('click', function() {
+                document.body.removeChild(downloadPrompt);
+                setTimeout(function() {
+                    window.print();
+                }, 500);
+            });
+            
+            document.getElementById('closePrompt').addEventListener('click', function() {
+                document.body.removeChild(downloadPrompt);
+            });
+        }
     </script>
 </body>
 </html>

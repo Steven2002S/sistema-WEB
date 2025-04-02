@@ -651,6 +651,11 @@ public function crearCurso() {
         // Validar datos de entrada
         $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING);
         $descripcion = filter_input(INPUT_POST, 'descripcion', FILTER_SANITIZE_STRING);
+        $fecha_inicio = filter_input(INPUT_POST, 'fecha_inicio');
+        $fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
+        $hora_inicio = filter_input(INPUT_POST, 'hora_inicio');
+        $hora_fin = filter_input(INPUT_POST, 'hora_fin');
+        $dias_semana = isset($_POST['dias_semana']) ? json_encode($_POST['dias_semana']) : null;
         
         // Verificar datos obligatorios
         if (!$nombre) {
@@ -660,7 +665,12 @@ public function crearCurso() {
             // Datos del curso a crear
             $datos = [
                 'nombre' => $nombre,
-                'descripcion' => $descripcion ?? ''
+                'descripcion' => $descripcion ?? '',
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
+                'hora_inicio' => $hora_inicio,
+                'hora_fin' => $hora_fin,
+                'dias_semana' => $dias_semana
             ];
             
             // Obtener ID del superadmin actual
@@ -714,6 +724,11 @@ public function editarCurso() {
         $nombre = filter_input(INPUT_POST, 'nombre', FILTER_SANITIZE_STRING);
         $descripcion = filter_input(INPUT_POST, 'descripcion', FILTER_SANITIZE_STRING);
         $estado = filter_input(INPUT_POST, 'estado');
+        $fecha_inicio = filter_input(INPUT_POST, 'fecha_inicio');
+        $fecha_fin = filter_input(INPUT_POST, 'fecha_fin');
+        $hora_inicio = filter_input(INPUT_POST, 'hora_inicio');
+        $hora_fin = filter_input(INPUT_POST, 'hora_fin');
+        $dias_semana = isset($_POST['dias_semana']) ? json_encode($_POST['dias_semana']) : null;
         
         // Verificar datos obligatorios
         if (!$nombre) {
@@ -723,7 +738,12 @@ public function editarCurso() {
             // Datos del curso a actualizar
             $datos = [
                 'nombre' => $nombre,
-                'descripcion' => $descripcion ?? ''
+                'descripcion' => $descripcion ?? '',
+                'fecha_inicio' => $fecha_inicio,
+                'fecha_fin' => $fecha_fin,
+                'hora_inicio' => $hora_inicio,
+                'hora_fin' => $hora_fin,
+                'dias_semana' => $dias_semana
             ];
             
             // Incluir estado solo si se proporciona

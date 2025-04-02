@@ -54,77 +54,86 @@ class CursoModel {
         return false;
     }
     
-    /**
-     * Crear un nuevo curso
-     * @param array $datos Datos del nuevo curso
-     * @param int $superadmin_id ID del superadmin que crea el curso
-     * @return bool|int ID del nuevo curso o false en caso de error
-     */
-    public function crear($datos, $superadmin_id) {
-        // Sanear los datos de entrada
-        $nombre = trim($datos['nombre']);
-        $descripcion = trim($datos['descripcion'] ?? '');
-        
-        // Validar que el nombre no esté vacío
-        if (empty($nombre)) {
-            return false;
-        }
-        
-        $query = "INSERT INTO cursos (nombre, descripcion, created_by) 
-                  VALUES (?, ?, ?)";
-        
-        $stmt = $this->db->prepare($query);
-        $stmt->bind_param("ssi", $nombre, $descripcion, $superadmin_id);
-        
-        if ($stmt->execute()) {
-            return $stmt->insert_id;
-        }
-        
+   /**
+ * Crear un nuevo curso
+ * @param array $datos Datos del nuevo curso
+ * @param int $superadmin_id ID del superadmin que crea el curso
+ * @return bool|int ID del nuevo curso o false en caso de error
+ */
+public function crear($datos, $superadmin_id) {
+    // Sanear los datos de entrada
+    $nombre = trim($datos['nombre']);
+    $descripcion = trim($datos['descripcion'] ?? '');
+    $fecha_inicio = $datos['fecha_inicio'] ?? null;
+    $fecha_fin = $datos['fecha_fin'] ?? null;
+    $hora_inicio = $datos['hora_inicio'] ?? null;
+    $hora_fin = $datos['hora_fin'] ?? null;
+    $dias_semana = $datos['dias_semana'] ?? null;
+    
+    // Validar que el nombre no esté vacío
+    if (empty($nombre)) {
         return false;
     }
     
-    /**
-     * Actualizar un curso existente
-     * @param int $id ID del curso a actualizar
-     * @param array $datos Nuevos datos del curso
-     * @return bool Resultado de la operación
-     */
-    public function actualizar($id, $datos) {
-        // Sanear los datos de entrada
-        $nombre = trim($datos['nombre']);
-        $descripcion = trim($datos['descripcion'] ?? '');
-        $estado = $datos['estado'] ?? null;
-        
-        // Validar que el nombre no esté vacío
-        if (empty($nombre)) {
-            return false;
-        }
-        
-        // Preparar la consulta de actualización
-        $query = "UPDATE cursos SET nombre = ?, descripcion = ?";
-        $params = [$nombre, $descripcion];
-        $types = "ss";
-        
-        // Incluir estado solo si se proporciona
-        if ($estado) {
-            if ($estado !== 'activo' && $estado !== 'inactivo') {
-                return false;
-            }
-            $query .= ", estado = ?";
-            $params[] = $estado;
-            $types .= "s";
-        }
-        
-        $query .= " WHERE id = ?";
-        $params[] = $id;
-        $types .= "i";
-        
-        $stmt = $this->db->prepare($query);
-        $stmt->bind_param($types, ...$params);
-        
-        return $stmt->execute();
+    $query = "INSERT INTO cursos (nombre, descripcion, fecha_inicio, fecha_fin, hora_inicio, hora_fin, dias_semana, created_by) 
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    
+    $stmt = $this->db->prepare($query);
+    $stmt->bind_param("sssssssi", $nombre, $descripcion, $fecha_inicio, $fecha_fin, $hora_inicio, $hora_fin, $dias_semana, $superadmin_id);
+    
+    if ($stmt->execute()) {
+        return $stmt->insert_id;
     }
     
+    return false;
+}
+
+/**
+ * Actualizar un curso existente
+ * @param int $id ID del curso a actualizar
+ * @param array $datos Nuevos datos del curso
+ * @return bool Resultado de la operación
+ */
+public function actualizar($id, $datos) {
+    // Sanear los datos de entrada
+    $nombre = trim($datos['nombre']);
+    $descripcion = trim($datos['descripcion'] ?? '');
+    $estado = $datos['estado'] ?? null;
+    $fecha_inicio = $datos['fecha_inicio'] ?? null;
+    $fecha_fin = $datos['fecha_fin'] ?? null;
+    $hora_inicio = $datos['hora_inicio'] ?? null;
+    $hora_fin = $datos['hora_fin'] ?? null;
+    $dias_semana = $datos['dias_semana'] ?? null;
+    
+    // Validar que el nombre no esté vacío
+    if (empty($nombre)) {
+        return false;
+    }
+    
+    // Preparar la consulta de actualización
+    $query = "UPDATE cursos SET nombre = ?, descripcion = ?, fecha_inicio = ?, fecha_fin = ?, hora_inicio = ?, hora_fin = ?, dias_semana = ?";
+    $params = [$nombre, $descripcion, $fecha_inicio, $fecha_fin, $hora_inicio, $hora_fin, $dias_semana];
+    $types = "sssssss";
+    
+    // Incluir estado solo si se proporciona
+    if ($estado) {
+        if ($estado !== 'activo' && $estado !== 'inactivo') {
+            return false;
+        }
+        $query .= ", estado = ?";
+        $params[] = $estado;
+        $types .= "s";
+    }
+    
+    $query .= " WHERE id = ?";
+    $params[] = $id;
+    $types .= "i";
+    
+    $stmt = $this->db->prepare($query);
+    $stmt->bind_param($types, ...$params);
+    
+    return $stmt->execute();
+}
     /**
      * Cambiar estado de un curso (activar/desactivar)
      * @param int $id ID del curso
@@ -143,6 +152,25 @@ class CursoModel {
         
         return $stmt->execute();
     }
+    /**
+ * Obtener todos los cursos con información de horario
+ * @return array Lista de cursos con información de horario
+ */
+public function obtenerTodosConHorario() {
+    $query = "SELECT c.*, s.nombre as creado_por 
+              FROM cursos c
+              JOIN superadmin s ON c.created_by = s.id
+              ORDER BY c.nombre ASC";
+    
+    $result = $this->db->getConnection()->query($query);
+    $cursos = [];
+    
+    while ($row = $result->fetch_assoc()) {
+        $cursos[] = $row;
+    }
+    
+    return $cursos;
+}
     
     /**
      * Eliminar un curso

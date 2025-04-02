@@ -39,12 +39,17 @@ CREATE TABLE IF NOT EXISTS usuarios (
     FOREIGN KEY (created_by) REFERENCES superadmin(id)
 );
 
--- Tabla para los cursos
+-- Tabla para los cursos (incluye campos de fecha y horario directamente)
 CREATE TABLE IF NOT EXISTS cursos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL,
     descripcion TEXT,
     estado ENUM('activo', 'inactivo') DEFAULT 'activo',
+    fecha_inicio DATE NULL,
+    fecha_fin DATE NULL,
+    hora_inicio TIME NULL,
+    hora_fin TIME NULL,
+    dias_semana VARCHAR(100) NULL COMMENT 'Almacena los días de la semana en formato JSON: ["lunes","miercoles","viernes"]',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by INT NOT NULL,
     FOREIGN KEY (created_by) REFERENCES superadmin(id)
@@ -75,9 +80,12 @@ CREATE TABLE IF NOT EXISTS estudiantes (
     nombres VARCHAR(100) NOT NULL,
     apellidos VARCHAR(100) NOT NULL,
     edad INT NOT NULL,
+    fecha_nacimiento DATE NULL,
     curso_id INT NOT NULL,
     talla VARCHAR(10),
     titular_id INT NOT NULL,
+    tiene_discapacidad ENUM('si', 'no') DEFAULT 'no',
+    observaciones_discapacidad TEXT NULL,
     FOREIGN KEY (curso_id) REFERENCES cursos(id),
     FOREIGN KEY (titular_id) REFERENCES titulares(id)
 );

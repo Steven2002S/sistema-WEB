@@ -6,7 +6,7 @@
     <title>Gestión de Cursos - Administrador</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        /* Usa los mismos estilos que compartiste en dashboard.php */
+        /* Los mismos estilos de antes se mantienen aquí */
         :root {
             --primary-color: #0077c2;
             --secondary-color: #0099ff;
@@ -323,6 +323,29 @@
             background-color: var(--danger-color);
             color: white;
         }
+
+        /* Nuevos estilos para las celdas de horarios */
+        .schedule-cell {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .schedule-info {
+            font-size: 13px;
+            color: var(--text-color);
+        }
+
+        .days-badge {
+            display: inline-block;
+            background-color: rgba(0, 119, 194, 0.1);
+            color: var(--primary-color);
+            border-radius: 4px;
+            padding: 2px 5px;
+            font-size: 11px;
+            margin-right: 3px;
+            margin-bottom: 2px;
+        }
     </style>
 </head>
 <body>
@@ -353,9 +376,9 @@
                 <i class="fas fa-user-tag"></i>
                 <span>Roles</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=verPerfil'">
-                <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=informeFacturacion'">
+                <i class="fas fa-file-invoice-dollar"></i>
+                <span>Facturación</span>
             </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
                 <i class="fas fa-chart-bar"></i>
@@ -389,9 +412,10 @@
                     <tr>
                         <th>Nombre</th>
                         <th>Descripción</th>
+                        <th>Fechas</th>
+                        <th>Horario</th>
                         <th>Estado</th>
                         <th>Creado por</th>
-                        <th>Fecha de Creación</th>
                         <th>Acciones</th>
                     </tr>
                 </thead>
@@ -402,12 +426,42 @@
                             <td><?php echo htmlspecialchars($curso['nombre']); ?></td>
                             <td><?php echo htmlspecialchars(substr($curso['descripcion'], 0, 50) . (strlen($curso['descripcion']) > 50 ? '...' : '')); ?></td>
                             <td>
+                                <?php if (!empty($curso['fecha_inicio']) && !empty($curso['fecha_fin'])): ?>
+                                    <div class="schedule-info">
+                                        <i class="far fa-calendar-alt"></i> 
+                                        <?php echo date('d/m/Y', strtotime($curso['fecha_inicio'])); ?> al <?php echo date('d/m/Y', strtotime($curso['fecha_fin'])); ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="schedule-info">No establecido</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="schedule-cell">
+                                <?php if (!empty($curso['hora_inicio']) && !empty($curso['hora_fin'])): ?>
+                                    <div class="schedule-info">
+                                        <i class="far fa-clock"></i> 
+                                        <?php echo date('H:i', strtotime($curso['hora_inicio'])); ?> - 
+                                        <?php echo date('H:i', strtotime($curso['hora_fin'])); ?>
+                                    </div>
+                                    <?php if (!empty($curso['dias_semana'])): 
+                                        $dias = json_decode($curso['dias_semana'], true);
+                                        if (is_array($dias)): ?>
+                                            <div>
+                                                <?php foreach ($dias as $dia): ?>
+                                                    <span class="days-badge"><?php echo ucfirst($dia); ?></span>
+                                                <?php endforeach; ?>
+                                            </div>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                <?php else: ?>
+                                    <span class="schedule-info">No establecido</span>
+                                <?php endif; ?>
+                            </td>
+                            <td>
                                 <span class="badge <?php echo $curso['estado'] == 'activo' ? 'badge-active' : 'badge-inactive'; ?>">
                                     <?php echo ucfirst($curso['estado']); ?>
                                 </span>
                             </td>
                             <td><?php echo htmlspecialchars($curso['creado_por']); ?></td>
-                            <td><?php echo date('d/m/Y H:i', strtotime($curso['created_at'])); ?></td>
                             <td class="actions">
                                 <div class="btn-icon btn-view" title="Ver detalles" onclick="location.href='index.php?controller=superadmin&action=verCurso&id=<?php echo $curso['id']; ?>'">
                                     <i class="fas fa-eye"></i>

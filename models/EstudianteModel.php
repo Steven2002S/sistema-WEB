@@ -129,18 +129,35 @@ class EstudianteModel {
             }
             
             $query = "INSERT INTO estudiantes (cedula, nombres, apellidos, edad, 
-                                            curso_id, talla, titular_id) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?)";
+                                            curso_id, talla, titular_id,
+                                            fecha_nacimiento, tiene_discapacidad, observaciones_discapacidad) 
+                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
             
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param("sssisii", 
-                $datos['cedula'], 
-                $datos['nombres'], 
-                $datos['apellidos'], 
-                $datos['edad'], 
-                $datos['curso_id'], 
-                $datos['talla'], 
-                $datos['titular_id']
+            
+            // Crear variables temporales para poder pasar por referencia
+            $cedula = $datos['cedula']; 
+            $nombres = $datos['nombres']; 
+            $apellidos = $datos['apellidos']; 
+            $edad = $datos['edad']; 
+            $curso_id = $datos['curso_id']; 
+            $talla = $datos['talla']; 
+            $titular_id = $datos['titular_id'];
+            $fecha_nacimiento = $datos['fecha_nacimiento'] ?? null;
+            $tiene_discapacidad = $datos['tiene_discapacidad'] ?? 'no';
+            $observaciones_discapacidad = $datos['observaciones_discapacidad'] ?? null;
+            
+            $stmt->bind_param("sssississs", 
+                $cedula, 
+                $nombres, 
+                $apellidos, 
+                $edad, 
+                $curso_id, 
+                $talla, 
+                $titular_id,
+                $fecha_nacimiento,
+                $tiene_discapacidad,
+                $observaciones_discapacidad
             );
             
             if ($stmt->execute()) {
@@ -174,18 +191,37 @@ class EstudianteModel {
                         edad = ?, 
                         curso_id = ?, 
                         talla = ?, 
-                        titular_id = ? 
+                        titular_id = ?,
+                        fecha_nacimiento = ?,
+                        tiene_discapacidad = ?,
+                        observaciones_discapacidad = ?
                       WHERE id = ?";
             
             $stmt = $this->db->prepare($query);
-            $stmt->bind_param("sssisiii", 
-                $datos['cedula'], 
-                $datos['nombres'], 
-                $datos['apellidos'], 
-                $datos['edad'], 
-                $datos['curso_id'], 
-                $datos['talla'], 
-                $datos['titular_id'],
+            
+            // Crear variables temporales para poder pasar por referencia
+            $cedula = $datos['cedula']; 
+            $nombres = $datos['nombres']; 
+            $apellidos = $datos['apellidos']; 
+            $edad = $datos['edad']; 
+            $curso_id = $datos['curso_id']; 
+            $talla = $datos['talla']; 
+            $titular_id = $datos['titular_id'];
+            $fecha_nacimiento = $datos['fecha_nacimiento'] ?? null;
+            $tiene_discapacidad = $datos['tiene_discapacidad'] ?? 'no';
+            $observaciones_discapacidad = $datos['observaciones_discapacidad'] ?? null;
+            
+            $stmt->bind_param("sssississsi", 
+                $cedula, 
+                $nombres, 
+                $apellidos, 
+                $edad, 
+                $curso_id, 
+                $talla, 
+                $titular_id,
+                $fecha_nacimiento,
+                $tiene_discapacidad,
+                $observaciones_discapacidad,
                 $id
             );
             

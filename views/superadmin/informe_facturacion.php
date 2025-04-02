@@ -325,10 +325,6 @@
                 <i class="fas fa-file-invoice-dollar"></i>
                 <span>Facturación</span>
             </li>
-            <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=perfil'">
-                <i class="fas fa-cog"></i>
-                <span>Configuraciones</span>
-            </li>
             <li class="menu-item" onclick="location.href='index.php?controller=superadmin&action=estadisticas'">
                 <i class="fas fa-chart-bar"></i>
                 <span>Estadísticas</span>

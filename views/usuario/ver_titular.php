@@ -364,6 +364,10 @@
                 <i class="fas fa-user-graduate"></i>
                 <span>Estudiantes</span>
             </li>
+            <li class="menu-item" onclick="location.href='index.php?controller=finanzas&action=dashboard'">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Finanzas</span>
+            </li>
             <li class="menu-item" onclick="location.href='index.php?controller=usuario&action=perfil'">
                 <i class="fas fa-cog"></i>
                 <span>Mi Perfil</span>
