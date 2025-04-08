@@ -2,6 +2,7 @@
 CREATE DATABASE IF NOT EXISTS wemakerssystem;
 USE wemakerssystem;
 
+
 -- Tabla para el superadministrador
 CREATE TABLE IF NOT EXISTS superadmin (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -11,7 +12,7 @@ CREATE TABLE IF NOT EXISTS superadmin (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla para los roles (permite escalabilidad futura)
+-- Tabla para los roles 
 CREATE TABLE IF NOT EXISTS roles (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(50) NOT NULL UNIQUE,
@@ -34,7 +35,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
     password VARCHAR(255) NOT NULL,
     rol_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    created_by INT NOT NULL, -- ID del superadmin que lo creó
+    created_by INT NOT NULL, 
     FOREIGN KEY (rol_id) REFERENCES roles(id),
     FOREIGN KEY (created_by) REFERENCES superadmin(id)
 );
@@ -49,7 +50,7 @@ CREATE TABLE IF NOT EXISTS cursos (
     fecha_fin DATE NULL,
     hora_inicio TIME NULL,
     hora_fin TIME NULL,
-    dias_semana VARCHAR(100) NULL COMMENT 'Almacena los días de la semana en formato JSON: ["lunes","miercoles","viernes"]',
+    dias_semana VARCHAR(100) NULL COMMENT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     created_by INT NOT NULL,
     FOREIGN KEY (created_by) REFERENCES superadmin(id)
@@ -152,8 +153,8 @@ CREATE TABLE IF NOT EXISTS consecutivos_generales (
 CREATE TABLE IF NOT EXISTS recibos (
     id INT AUTO_INCREMENT PRIMARY KEY,
     contrato_id INT NOT NULL,
-    recibo_por VARCHAR(200) NOT NULL, -- Nombre y apellido del titular
-    responsable_id INT NOT NULL, -- ID del usuario responsable
+    recibo_por VARCHAR(200) NOT NULL, 
+    responsable_id INT NOT NULL, 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (contrato_id) REFERENCES contratos(id),
     FOREIGN KEY (responsable_id) REFERENCES usuarios(id)

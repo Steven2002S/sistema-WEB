@@ -1,4 +1,4 @@
-<?php
+<?php 
 $password = "Admin@1234";
 $hash = password_hash($password, PASSWORD_DEFAULT);
 echo "Hash generado: " . $hash;
@@ -11,13 +11,13 @@ if ($mysqli->connect_error) {
 }
 
 $stmt = $mysqli->prepare("INSERT INTO superadmin (nombre, email, password) VALUES (?, ?, ?)");
-$nombre = "NuevoAdmin";
-$email = "nuevo@wemakers.com";
+$nombre = "SuperAdmin";
+$email = "SuperAdministrador@gmail.com";
 $stmt->bind_param("sss", $nombre, $email, $hash);
 
 if ($stmt->execute()) {
     echo "\nNuevo admin insertado con éxito. Usa estas credenciales para iniciar sesión:\n";
-    echo "Email: nuevo@wemakers.com\n";
+    echo "Email: SuperAdministrador@gmail.com\n";
     echo "Contraseña: Admin@1234";
 } else {
     echo "\nError al insertar: " . $stmt->error;
